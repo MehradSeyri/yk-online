@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="YK-Online — poradenství a marketing / consulting and marketing" />
+  <title>YK-Online | Poradenství & Marketing</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="container navbar__inner">
+      <a href="#" class="logo">YK<span>-Online</span></a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#services" data-cs="Služby" data-en="Services">Služby</a>
+        <a href="#pricing" data-cs="Ceník" data-en="Pricing">Ceník</a>
+        <a href="#contact" data-cs="Kontakt" data-en="Contact">Kontakt</a>
+      </nav>
+      <div class="navbar__actions">
+        <button class="lang-btn" id="langToggle" aria-label="Switch language" title="Switch language">EN</button>
+        <button class="btn btn--outline" id="loginBtn" data-cs="Přihlásit se" data-en="Log in">Přihlásit se</button>
+        <button class="btn btn--primary" id="registerBtn" data-cs="Registrovat se" data-en="Sign up">Registrovat se</button>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero__inner">
+
+      <!-- Left: text content -->
+      <div class="hero__content">
+        <div class="hero__badge" data-cs="Poradenství & Marketing" data-en="Consulting & Marketing">Poradenství & Marketing</div>
+        <h1 class="hero__title" data-cs="Posuneme váš byznys<br>na další úroveň" data-en="We take your business<br>to the next level">Posuneme váš byznys<br>na další úroveň</h1>
+        <p class="hero__sub" data-cs="Profesionální poradenství a marketingové strategie přizpůsobené přímo vašim potřebám. Bez zbytečných frází — jen výsledky." data-en="Professional consulting and marketing strategies tailored exactly to your needs. No fluff — just results.">Profesionální poradenství a marketingové strategie přizpůsobené přímo vašim potřebám. Bez zbytečných frází — jen výsledky.</p>
+        <div class="hero__cta">
+          <button class="btn btn--primary btn--lg" id="heroCta" data-cs="Začít teď" data-en="Get started">Začít teď</button>
+          <a href="#services" class="btn btn--ghost btn--lg" data-cs="Zjistit více" data-en="Learn more">Zjistit více</a>
+        </div>
+      </div>
+
+      <!-- Right: dashboard illustration -->
+      <div class="hero__visual" aria-hidden="true">
+        <svg class="hero__svg" viewBox="0 0 540 400" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="hBg1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#93c5fd"/>
+              <stop offset="100%" stop-color="#3b82f6" stop-opacity=".45"/>
+            </linearGradient>
+            <linearGradient id="hBg2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c4b5fd"/>
+              <stop offset="100%" stop-color="#7c3aed" stop-opacity=".45"/>
+            </linearGradient>
+            <linearGradient id="hArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#60a5fa" stop-opacity=".3"/>
+              <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+            </linearGradient>
+            <filter id="hShadow" x="-25%" y="-25%" width="150%" height="150%">
+              <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity=".18"/>
+            </filter>
+          </defs>
+
+          <!-- Decorative bg circles -->
+          <circle cx="490" cy="55" r="90" fill="#7c3aed" fill-opacity=".07"/>
+          <circle cx="50" cy="360" r="75" fill="#3b82f6" fill-opacity=".06"/>
+
+          <!-- Main dashboard card -->
+          <rect x="70" y="30" width="370" height="268" rx="18"
+                fill="white" fill-opacity=".08"
+                stroke="white" stroke-opacity=".18" stroke-width="1.5"
+                filter="url(#hShadow)"/>
+          <!-- Card header -->
+          <rect x="70" y="30" width="370" height="46" rx="18" fill="white" fill-opacity=".06"/>
+          <rect x="70" y="62" width="370" height="1" fill="white" fill-opacity=".12"/>
+          <!-- Traffic lights -->
+          <circle cx="97" cy="53" r="5.5" fill="#ef4444" fill-opacity=".85"/>
+          <circle cx="115" cy="53" r="5.5" fill="#f59e0b" fill-opacity=".85"/>
+          <circle cx="133" cy="53" r="5.5" fill="#22c55e" fill-opacity=".85"/>
+          <!-- Header label -->
+          <rect x="155" y="47" width="90" height="10" rx="5" fill="white" fill-opacity=".28"/>
+
+          <!-- Subtle grid lines -->
+          <line x1="90" y1="110" x2="420" y2="110" stroke="white" stroke-opacity=".05" stroke-width="1"/>
+          <line x1="90" y1="155" x2="420" y2="155" stroke="white" stroke-opacity=".05" stroke-width="1"/>
+          <line x1="90" y1="200" x2="420" y2="200" stroke="white" stroke-opacity=".05" stroke-width="1"/>
+          <line x1="90" y1="245" x2="420" y2="245" stroke="white" stroke-opacity=".05" stroke-width="1"/>
+
+          <!-- Bar chart (bottom baseline y=278) -->
+          <rect x="100" y="228" width="28" height="50" rx="5" fill="url(#hBg1)"/>
+          <rect x="146" y="208" width="28" height="70" rx="5" fill="url(#hBg1)"/>
+          <rect x="192" y="183" width="28" height="95" rx="5" fill="url(#hBg1)"/>
+          <rect x="238" y="198" width="28" height="80" rx="5" fill="url(#hBg2)"/>
+          <rect x="284" y="163" width="28" height="115" rx="5" fill="url(#hBg2)"/>
+          <rect x="330" y="173" width="28" height="105" rx="5" fill="url(#hBg2)"/>
+          <rect x="376" y="133" width="28" height="145" rx="5" fill="url(#hBg2)"/>
+
+          <!-- Area fill under line -->
+          <path d="M114 222 C138 210 160 198 206 178 C230 168 252 185 266 182
+                   C290 178 308 163 322 158 C348 152 366 162 390 148 L390 278 L114 278 Z"
+                fill="url(#hArea)"/>
+          <!-- Line chart -->
+          <path d="M114 222 C138 210 160 198 206 178 C230 168 252 185 266 182
+                   C290 178 308 163 322 158 C348 152 366 162 390 148"
+                stroke="#60a5fa" stroke-width="2.5" fill="none"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Data points -->
+          <circle cx="114" cy="222" r="3.5" fill="#60a5fa"/>
+          <circle cx="206" cy="178" r="3.5" fill="#60a5fa"/>
+          <circle cx="266" cy="182" r="3.5" fill="#60a5fa"/>
+          <circle cx="322" cy="158" r="3.5" fill="#60a5fa"/>
+          <!-- Last point highlighted -->
+          <circle cx="390" cy="148" r="7" fill="white" fill-opacity=".15" stroke="#60a5fa" stroke-width="2"/>
+          <circle cx="390" cy="148" r="3.5" fill="white"/>
+
+          <!-- Floating card 1: Growth (top-right) -->
+          <g class="hfc hfc--1" filter="url(#hShadow)">
+            <rect x="393" y="14" width="140" height="70" rx="13"
+                  fill="white" fill-opacity=".12"
+                  stroke="white" stroke-opacity=".22" stroke-width="1"/>
+            <rect x="406" y="26" width="32" height="32" rx="8" fill="#22c55e" fill-opacity=".28"/>
+            <!-- Arrow up -->
+            <polyline points="422,50 422,36 416,42" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="422,36 428,42" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="447" y="37" font-family="Inter,sans-serif" font-size="9" font-weight="600" fill="white" fill-opacity=".55" letter-spacing=".5">GROWTH</text>
+            <text x="447" y="55" font-family="Inter,sans-serif" font-size="19" font-weight="800" fill="white" fill-opacity=".92">+42%</text>
+          </g>
+
+          <!-- Floating card 2: Clients (bottom-left) -->
+          <g class="hfc hfc--2" filter="url(#hShadow)">
+            <rect x="0" y="205" width="126" height="68" rx="13"
+                  fill="white" fill-opacity=".12"
+                  stroke="white" stroke-opacity=".22" stroke-width="1"/>
+            <rect x="12" y="217" width="32" height="32" rx="8" fill="#3b82f6" fill-opacity=".3"/>
+            <!-- Person icon -->
+            <circle cx="28" cy="225" r="6" fill="none" stroke="#93c5fd" stroke-width="1.8"/>
+            <path d="M18 241 Q28 237 38 241" stroke="#93c5fd" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+            <text x="52" y="227" font-family="Inter,sans-serif" font-size="9" font-weight="600" fill="white" fill-opacity=".55" letter-spacing=".5">CLIENTS</text>
+            <text x="52" y="248" font-family="Inter,sans-serif" font-size="19" font-weight="800" fill="white" fill-opacity=".92">127</text>
+          </g>
+
+          <!-- Floating card 3: Live revenue (bottom-right) -->
+          <g class="hfc hfc--3" filter="url(#hShadow)">
+            <rect x="398" y="308" width="136" height="68" rx="13"
+                  fill="white" fill-opacity=".12"
+                  stroke="white" stroke-opacity=".22" stroke-width="1"/>
+            <!-- Pulse dot -->
+            <circle cx="418" cy="342" r="12" fill="#7c3aed" fill-opacity=".2"/>
+            <circle cx="418" cy="342" r="6" fill="#a78bfa" class="hpulse"/>
+            <text x="438" y="332" font-family="Inter,sans-serif" font-size="9" font-weight="600" fill="white" fill-opacity=".55" letter-spacing=".5">REVENUE</text>
+            <text x="438" y="348" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="white" fill-opacity=".9">&#x25CF; LIVE</text>
+            <text x="438" y="364" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#4ade80">$12,840</text>
+          </g>
+
+          <!-- Dot grid decoration -->
+          <circle cx="35" cy="90" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="50" cy="90" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="65" cy="90" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="35" cy="106" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="50" cy="106" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="65" cy="106" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="35" cy="122" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="50" cy="122" r="2.5" fill="white" fill-opacity=".18"/>
+          <circle cx="65" cy="122" r="2.5" fill="white" fill-opacity=".18"/>
+        </svg>
+      </div>
+
+    </div>
+    <div class="hero__bg-shape"></div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services section" id="services">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge" data-cs="Co nabízíme" data-en="What we offer">Co nabízíme</span>
+        <h2 data-cs="Naše služby" data-en="Our Services">Naše služby</h2>
+        <p data-cs="Komplexní řešení pro firmy, startupy i jednotlivce." data-en="Comprehensive solutions for companies, startups, and individuals.">Komplexní řešení pro firmy, startupy i jednotlivce.</p>
+      </div>
+      <div class="services__grid">
+        <div class="card">
+          <div class="card__icon">&#128200;</div>
+          <h3 data-cs="Obchodní poradenství" data-en="Business Consulting">Obchodní poradenství</h3>
+          <p data-cs="Strategické plánování, optimalizace procesů a rozvoj obchodních modelů pro udržitelný růst." data-en="Strategic planning, process optimisation, and business model development for sustainable growth.">Strategické plánování, optimalizace procesů a rozvoj obchodních modelů pro udržitelný růst.</p>
+        </div>
+        <div class="card">
+          <div class="card__icon">&#128293;</div>
+          <h3 data-cs="Digitální marketing" data-en="Digital Marketing">Digitální marketing</h3>
+          <p data-cs="SEO, PPC kampaně, správa sociálních sítí a obsahový marketing — vše pod jednou střechou." data-en="SEO, PPC campaigns, social media management, and content marketing — all under one roof.">SEO, PPC kampaně, správa sociálních sítí a obsahový marketing — vše pod jednou střechou.</p>
+        </div>
+        <div class="card">
+          <div class="card__icon">&#127919;</div>
+          <h3 data-cs="Brandová strategie" data-en="Brand Strategy">Brandová strategie</h3>
+          <p data-cs="Budování silné značky s jasným poselstvím, vizuální identitou a pozicí na trhu." data-en="Building a strong brand with a clear message, visual identity, and market positioning.">Budování silné značky s jasným poselstvím, vizuální identitou a pozicí na trhu.</p>
+        </div>
+        <div class="card">
+          <div class="card__icon">&#128083;</div>
+          <h3 data-cs="1-na-1 konzultace" data-en="1-on-1 Consultations">1-na-1 konzultace</h3>
+          <p data-cs="Osobní sezení s odborníkem zaměřená přímo na vaše výzvy a cíle." data-en="Personal sessions with an expert focused directly on your challenges and goals.">Osobní sezení s odborníkem zaměřená přímo na vaše výzvy a cíle.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing section" id="pricing">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge" data-cs="Transparentní ceny" data-en="Transparent pricing">Transparentní ceny</span>
+        <h2 data-cs="Vyberte si svůj plán" data-en="Choose your plan">Vyberte si svůj plán</h2>
+        <p data-cs="Přihlaste se nebo se zaregistrujte pro přístup k platbám." data-en="Log in or sign up to access payments.">Přihlaste se nebo se zaregistrujte pro přístup k platbám.</p>
+      </div>
+      <div class="pricing__grid">
+
+        <!-- Starter -->
+        <div class="pricing-card">
+          <div class="pricing-card__header">
+            <span class="pricing-card__name" data-cs="Starter" data-en="Starter">Starter</span>
+            <div class="pricing-card__price">
+              <span class="amount">$25</span>
+              <span class="per" data-cs="/ měsíc" data-en="/ month">/ měsíc</span>
+            </div>
+            <p class="pricing-card__desc" data-cs="Ideální pro začínající podnikatele a malé firmy." data-en="Ideal for entrepreneurs and small businesses just getting started.">Ideální pro začínající podnikatele a malé firmy.</p>
+          </div>
+          <ul class="pricing-card__features">
+            <li data-cs="1 konzultační sezení / měsíc" data-en="1 consultation session / month">1 konzultační sezení / měsíc</li>
+            <li data-cs="Audit online přítomnosti" data-en="Online presence audit">Audit online přítomnosti</li>
+            <li data-cs="Základní marketingový plán" data-en="Basic marketing plan">Základní marketingový plán</li>
+            <li data-cs="E-mailová podpora" data-en="E-mail support">E-mailová podpora</li>
+          </ul>
+          <button class="btn btn--primary btn--full pricing-btn" data-cs="Začít — přihlaste se" data-en="Get started — log in" data-requires-auth="true">Začít — přihlaste se</button>
+        </div>
+
+        <!-- Custom -->
+        <div class="pricing-card pricing-card--featured">
+          <div class="pricing-card__badge" data-cs="Nejoblíbenější" data-en="Most popular">Nejoblíbenější</div>
+          <div class="pricing-card__header">
+            <span class="pricing-card__name" data-cs="Custom" data-en="Custom">Custom</span>
+            <div class="pricing-card__price">
+              <span class="amount" data-cs="Na míru" data-en="Custom">Na míru</span>
+            </div>
+            <p class="pricing-card__desc" data-cs="Řešení šité na míru vašim specifickým potřebám a cílům." data-en="A solution tailored to your specific needs and goals.">Řešení šité na míru vašim specifickým potřebám a cílům.</p>
+          </div>
+          <ul class="pricing-card__features">
+            <li data-cs="Neomezené konzultace" data-en="Unlimited consultations">Neomezené konzultace</li>
+            <li data-cs="Komplexní marketingová strategie" data-en="Comprehensive marketing strategy">Komplexní marketingová strategie</li>
+            <li data-cs="Dedikovaný account manažer" data-en="Dedicated account manager">Dedikovaný account manažer</li>
+            <li data-cs="Prioritní podpora 24/7" data-en="Priority support 24/7">Prioritní podpora 24/7</li>
+            <li data-cs="Reporting a analytika" data-en="Reporting and analytics">Reporting a analytika</li>
+            <li data-cs="Přizpůsobené KPI" data-en="Custom KPIs">Přizpůsobené KPI</li>
+          </ul>
+          <button class="btn btn--primary btn--full pricing-btn" data-cs="Kontaktovat nás" data-en="Contact us" data-requires-auth="true">Kontaktovat nás</button>
+        </div>
+
+      </div>
+      <p class="pricing__note" data-cs="* Pro dokončení objednávky je nutná registrace a přihlášení. Platební brána bude brzy k dispozici." data-en="* Registration and login are required to complete an order. Payment gateway coming soon.">* Pro dokončení objednávky je nutná registrace a přihlášení. Platební brána bude brzy k dispozici.</p>
+    </div>
+  </section>
+
+  <!-- WHY US -->
+  <section class="whyus section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge" data-cs="Proč YK-Online" data-en="Why YK-Online">Proč YK-Online</span>
+        <h2 data-cs="Náš přístup" data-en="Our approach">Náš přístup</h2>
+      </div>
+      <div class="whyus__grid">
+        <div class="whyus__item">
+          <div class="whyus__icon">&#10003;</div>
+          <div>
+            <h4 data-cs="Výsledky na prvním místě" data-en="Results first">Výsledky na prvním místě</h4>
+            <p data-cs="Každé doporučení podkládáme daty a reálnými metrikami." data-en="Every recommendation is backed by data and real metrics.">Každé doporučení podkládáme daty a reálnými metrikami.</p>
+          </div>
+        </div>
+        <div class="whyus__item">
+          <div class="whyus__icon">&#10003;</div>
+          <div>
+            <h4 data-cs="Individuální přístup" data-en="Individual approach">Individuální přístup</h4>
+            <p data-cs="Žádné šablonové řešení — vždy strategie na míru." data-en="No cookie-cutter solutions — always a tailored strategy.">Žádné šablonové řešení — vždy strategie na míru.</p>
+          </div>
+        </div>
+        <div class="whyus__item">
+          <div class="whyus__icon">&#10003;</div>
+          <div>
+            <h4 data-cs="Transparentní komunikace" data-en="Transparent communication">Transparentní komunikace</h4>
+            <p data-cs="Pravidelné reporty, jasné cíle a otevřená komunikace." data-en="Regular reports, clear goals, and open communication.">Pravidelné reporty, jasné cíle a otevřená komunikace.</p>
+          </div>
+        </div>
+        <div class="whyus__item">
+          <div class="whyus__icon">&#10003;</div>
+          <div>
+            <h4 data-cs="Zkušený tým" data-en="Experienced team">Zkušený tým</h4>
+            <p data-cs="Odborníci s praxí v poradenství i digitálním marketingu." data-en="Experts with hands-on experience in consulting and digital marketing.">Odborníci s praxí v poradenství i digitálním marketingu.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact section" id="contact">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge" data-cs="Napište nám" data-en="Get in touch">Napište nám</span>
+        <h2 data-cs="Kontakt" data-en="Contact">Kontakt</h2>
+        <p data-cs="Máte otázky? Rádi odpovíme." data-en="Have questions? We'd be happy to answer.">Máte otázky? Rádi odpovíme.</p>
+      </div>
+      <div class="contact__grid">
+        <form class="contact__form" id="contactForm" novalidate>
+          <div class="form-group">
+            <label for="cName" data-cs="Jméno" data-en="Name">Jméno</label>
+            <input type="text" id="cName" name="name" autocomplete="name" required placeholder=" " />
+          </div>
+          <div class="form-group">
+            <label for="cEmail" data-cs="E-mail" data-en="E-mail">E-mail</label>
+            <input type="email" id="cEmail" name="email" autocomplete="email" required placeholder=" " />
+          </div>
+          <div class="form-group">
+            <label for="cMsg" data-cs="Zpráva" data-en="Message">Zpráva</label>
+            <textarea id="cMsg" name="message" rows="5" required placeholder=" "></textarea>
+          </div>
+          <button type="submit" class="btn btn--primary btn--full" data-cs="Odeslat zprávu" data-en="Send message">Odeslat zprávu</button>
+          <p class="form__success hidden" id="formSuccess" data-cs="Zpráva odeslána! Brzy se vám ozveme." data-en="Message sent! We'll get back to you shortly.">Zpráva odeslána! Brzy se vám ozveme.</p>
+        </form>
+        <div class="contact__info">
+          <div class="contact__info-item">
+            <span class="contact__icon">&#9993;</span>
+            <a href="mailto:info@yk-online.eu">info@yk-online.eu</a>
+          </div>
+          <div class="contact__info-item">
+            <span class="contact__icon">&#127760;</span>
+            <a href="https://yk-online.eu" target="_blank" rel="noopener noreferrer">yk-online.eu</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <a href="index.html" class="logo">YK<span>-Online</span></a>
+      <nav class="footer__links">
+        <a href="terms.html" data-cs="Obchodní podmínky" data-en="Terms &amp; Conditions">Obchodní podmínky</a>
+        <a href="complaints.html" data-cs="Reklamační řád" data-en="Complaints Policy">Reklamační řád</a>
+        <a href="privacy.html" data-cs="Ochrana osobních údajů" data-en="Privacy Policy">Ochrana osobních údajů</a>
+      </nav>
+      <p class="footer__company" data-cs="YK Online, s.r.o. &nbsp;|&nbsp; IČO: 24062421" data-en="YK Online, s.r.o. &nbsp;|&nbsp; Company ID: 24062421">YK Online, s.r.o. &nbsp;|&nbsp; IČO: 24062421</p>
+      <p data-cs="&copy; 2026 YK-Online. Všechna práva vyhrazena." data-en="&copy; 2026 YK-Online. All rights reserved.">&copy; 2026 YK-Online. Všechna práva vyhrazena.</p>
+    </div>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay hidden" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="modal">
+      <button class="modal__close" data-close="loginModal" aria-label="Close">&times;</button>
+      <h2 id="loginTitle" data-cs="Přihlásit se" data-en="Log in">Přihlásit se</h2>
+      <form class="modal__form" id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="loginEmail" data-cs="E-mail" data-en="E-mail">E-mail</label>
+          <input type="email" id="loginEmail" name="email" autocomplete="email" required placeholder=" " />
+        </div>
+        <div class="form-group">
+          <label for="loginPassword" data-cs="Heslo" data-en="Password">Heslo</label>
+          <input type="password" id="loginPassword" name="password" autocomplete="current-password" required placeholder=" " />
+        </div>
+        <button type="submit" class="btn btn--primary btn--full" data-cs="Přihlásit se" data-en="Log in">Přihlásit se</button>
+        <p class="modal__switch" data-cs='Nemáte účet? <button type="button" class="link-btn" id="switchToRegister">Zaregistrujte se</button>' data-en='No account? <button type="button" class="link-btn" id="switchToRegister">Sign up</button>'>Nemáte účet? <button type="button" class="link-btn" id="switchToRegister">Zaregistrujte se</button></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- REGISTER MODAL -->
+  <div class="modal-overlay hidden" id="registerModal" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+    <div class="modal">
+      <button class="modal__close" data-close="registerModal" aria-label="Close">&times;</button>
+      <h2 id="registerTitle" data-cs="Registrovat se" data-en="Sign up">Registrovat se</h2>
+      <form class="modal__form" id="registerForm" novalidate>
+        <div class="form-group">
+          <label for="regName" data-cs="Jméno" data-en="Full name">Jméno</label>
+          <input type="text" id="regName" name="name" autocomplete="name" required placeholder=" " />
+        </div>
+        <div class="form-group">
+          <label for="regEmail" data-cs="E-mail" data-en="E-mail">E-mail</label>
+          <input type="email" id="regEmail" name="email" autocomplete="email" required placeholder=" " />
+        </div>
+        <div class="form-group">
+          <label for="regPassword" data-cs="Heslo" data-en="Password">Heslo</label>
+          <input type="password" id="regPassword" name="password" autocomplete="new-password" required placeholder=" " minlength="8" />
+          <span class="form-hint" data-cs="Minimálně 8 znaků" data-en="At least 8 characters">Minimálně 8 znaků</span>
+        </div>
+        <div class="form-group">
+          <label for="regPassword2" data-cs="Heslo znovu" data-en="Confirm password">Heslo znovu</label>
+          <input type="password" id="regPassword2" name="password2" autocomplete="new-password" required placeholder=" " />
+        </div>
+        <button type="submit" class="btn btn--primary btn--full" data-cs="Vytvořit účet" data-en="Create account">Vytvořit účet</button>
+        <p class="modal__switch" data-cs='Již máte účet? <button type="button" class="link-btn" id="switchToLogin">Přihlaste se</button>' data-en='Already have an account? <button type="button" class="link-btn" id="switchToLogin">Log in</button>'>Již máte účet? <button type="button" class="link-btn" id="switchToLogin">Přihlaste se</button></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
