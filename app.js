@@ -134,7 +134,7 @@
     const w = window.innerWidth;
     if (w <= 720) return 1;
     if (w <= 960) return 2;
-    return 4;
+    return 3;
   }
 
   function getSlideCount() {
