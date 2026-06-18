@@ -14,16 +14,30 @@ One Next.js project serves both the public site (`/`, `/terms`, `/privacy`,
 Need a Postgres DB reachable from Vercel. Any works: Vercel Postgres, Neon,
 Supabase, RDS.
 
-1. Create the DB, copy its connection string → this is `DATABASE_URL`.
-2. Apply the schema (locally, pointing at the prod DB):
-   ```bash
-   DATABASE_URL="postgres://...prod..." npx prisma migrate deploy
-   ```
-   This creates `payment_events` + `provider_webhook_events`.
+### Supabase — use the POOLER, not the direct host
 
-`gen_random_uuid()` needs the `pgcrypto` extension — migration `0001_init`
-enables it (`CREATE EXTENSION IF NOT EXISTS pgcrypto`). On Supabase it is already
-on.
+The direct host `db.<ref>.supabase.co:5432` is **IPv6-only** and is usually
+unreachable from IPv4 networks and from Vercel → `P1001 Can't reach database
+server`. Use the **Supavisor pooler** strings instead (Dashboard → Project
+Settings → Database → Connection string → *Connection pooling*):
+
+- `DATABASE_URL` (app runtime) — **transaction** pooler, port **6543**:
+  `postgresql://postgres.<ref>:<pwd>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1`
+- `DIRECT_URL` (migrations) — **session** pooler, port **5432**:
+  `postgresql://postgres.<ref>:<pwd>@aws-0-<region>.pooler.supabase.com:5432/postgres`
+
+`schema.prisma` already wires `url = DATABASE_URL` + `directUrl = DIRECT_URL`.
+
+> If the project is **paused** (free tier auto-pauses), restore it in the
+> dashboard first — that also shows up as `P1001`.
+> URL-encode special chars in the password (`@` → `%40`, etc.).
+
+Apply the schema (locally, pointing at prod):
+```bash
+npx prisma migrate deploy
+```
+Creates `payment_events` + `provider_webhook_events`. `gen_random_uuid()` needs
+`pgcrypto` — migration `0001_init` enables it; on Supabase it is already on.
 
 ---
 
@@ -73,7 +87,8 @@ server-side — none are `NEXT_PUBLIC_*`, nothing reaches the browser.
 | `VIVA_CLIENT_SECRET` | from Viva | **yes** | |
 | `VIVA_SOURCE_CODE` | payment source code | no | Viva → Sources |
 | `VIVA_WEBHOOK_KEY` | from Viva webhook verification | **yes** | Returned on `GET /api/viva-webhook` |
-| `DATABASE_URL` | `postgres://...` | **yes** | Section 1 |
+| `DATABASE_URL` | `postgres://...pooler...:6543/postgres?pgbouncer=true&connection_limit=1` | **yes** | App runtime; Supabase transaction pooler (Section 1) |
+| `DIRECT_URL` | `postgres://...pooler...:5432/postgres` | **yes** | Migrations; Supabase session pooler (Section 1) |
 | `CRON_SECRET` | long random string | **yes** | Vercel Cron sends it as `Authorization: Bearer` |
 
 Generate secrets: `openssl rand -hex 32`.
