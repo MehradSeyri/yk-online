@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Metrics + lifecycle of every payment attempt.
+/// status: initiated | success | failed | confirmed
+model PaymentEvent {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  provider      String
+  orderId       String   @map("order_id")
+  orderCode     String?  @map("order_code")
+  transactionId String?  @map("transaction_id")
+  status        String
+  amountCents   Int?     @map("amount_cents")
+  currency      String?
+  countryCode   String?  @map("country_code")
+  lang          String?
+  eventId       String?  @map("event_id")
+  rawPayload    Json?    @map("raw_payload")
+
+  @@index([orderId], map: "payment_events_order_id_idx")
+  @@index([orderCode], map: "payment_events_order_code_idx")
+  @@index([transactionId], map: "payment_events_tx_idx")
+  @@index([createdAt], map: "payment_events_created_idx")
+  @@map("payment_events")
+}
+
+/// Webhook de-duplication. UNIQUE(provider, idempotency_key) guarantees
+/// a given provider event is processed at most once.
+model ProviderWebhookEvent {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  provider       String
+  idempotencyKey String   @map("idempotency_key")
+  orderId        String?  @map("order_id")
+  transactionId  String?  @map("transaction_id")
+  eventType      String?  @map("event_type")
+  payload        Json?
+
+  @@unique([provider, idempotencyKey], map: "provider_webhook_events_provider_key_uniq")
+  @@map("provider_webhook_events")
+}

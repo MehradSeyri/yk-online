@@ -76,9 +76,9 @@ h4 { font-size: 1rem; font-weight: 600; color: var(--dark); }
 }
 .btn--primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); box-shadow: 0 4px 16px rgba(37,99,235,.35); }
 
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.btn--outline {
   background: transparent;
-  max-width: 1240px;
+  color: var(--brand);
   border-color: var(--brand);
 }
 .btn--outline:hover { background: var(--brand-light); }
@@ -1156,4 +1156,32 @@ h4 { font-size: 1rem; font-weight: 600; color: var(--dark); }
 
 @media (max-width: 480px) {
   .modal { padding: 28px 20px; }
+}
+
+/* Footer payment methods / secure-payment strip (GP + Viva compliance) */
+.footer__payments {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 14px 0 6px;
+}
+.pay-badge {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 800;
+  font-size: .82rem;
+  letter-spacing: .5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.1);
+  line-height: 1;
+}
+.pay-badge--visa { color: #1a1f71; }
+.pay-badge--mc { color: #eb001b; }
+.footer__secure {
+  font-size: .82rem;
+  opacity: .8;
 }
