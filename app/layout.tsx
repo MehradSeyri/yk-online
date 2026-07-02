@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: "YK-Online | Digitální produkty & Marketing",
   description:
     "YK-Online — digitální šablony, programy a marketingové poradenství / digital templates, programs and marketing consulting",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
