@@ -22,7 +22,7 @@ export function Navbar() {
           <Link href="/#products" onClick={() => setNavOpen(false)}>
             <T cs="Katalog" en="Catalog" />
           </Link>
-          <Link href="/#contact" onClick={() => setNavOpen(false)}>
+          <Link href="/contact" onClick={() => setNavOpen(false)}>
             <T cs="Kontakt" en="Contact" />
           </Link>
         </nav>
