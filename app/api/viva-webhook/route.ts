@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
-import { vivaIsPaid } from "@/lib/viva";
+import { vivaGetOrderStatus, vivaIsPaid } from "@/lib/viva";
 import {
   recordIdempotency,
   recordMetric,
@@ -86,9 +86,6 @@ export async function POST(req: NextRequest) {
     eventType: eventTypeId !== null ? String(eventTypeId) : null,
     payload: body,
   });
-  if (!fresh) {
-    return NextResponse.json({ ok: true, duplicate: true });
-  }
 
   if (!orderId) {
     log.warn("viva-webhook.no_merchant_trns", { orderCode, eventTypeId });
@@ -97,6 +94,53 @@ export async function POST(req: NextRequest) {
 
   // Strict paid condition: EventTypeId 1796 + StatusId 'F'.
   if (vivaIsPaid(eventTypeId, statusId)) {
+    if (!fresh) {
+      // Forward may have failed earlier after idempotency was written.
+      // If not confirmed yet, keep processing so provider retries can recover.
+      if (await alreadyConfirmed(orderId)) {
+        return NextResponse.json({ ok: true, duplicate: true, alreadyConfirmed: true });
+      }
+      log.warn("viva-webhook.duplicate_unconfirmed_retry", {
+        orderId,
+        orderCode,
+        transactionId,
+      });
+    }
+
+    // Defense-in-depth: verify paid state with Viva API before forwarding.
+    if (!orderCode) {
+      log.warn("viva-webhook.paid_missing_order_code", {
+        orderId,
+        transactionId,
+      });
+      return NextResponse.json({ error: "Missing orderCode" }, { status: 400 });
+    }
+
+    const verified = await vivaGetOrderStatus(orderCode);
+    if (verified.status !== "paid") {
+      log.warn("viva-webhook.paid_revalidation_failed", {
+        orderId,
+        orderCode,
+        transactionId,
+        verifiedStatus: verified.status,
+      });
+      return NextResponse.json({ ok: true, ignored: true, reason: "revalidation-failed" });
+    }
+
+    if (
+      transactionId &&
+      verified.transactionId &&
+      transactionId !== verified.transactionId
+    ) {
+      log.warn("viva-webhook.tx_mismatch", {
+        orderId,
+        orderCode,
+        webhookTx: transactionId,
+        verifiedTx: verified.transactionId,
+      });
+      return NextResponse.json({ ok: true, ignored: true, reason: "tx-mismatch" });
+    }
+
     if (await alreadyConfirmed(orderId)) {
       log.info("viva-webhook.already_confirmed", { orderId });
       return NextResponse.json({ ok: true, alreadyConfirmed: true });
@@ -122,6 +166,10 @@ export async function POST(req: NextRequest) {
       );
     }
     return NextResponse.json({ ok: true, forwarded: true });
+  }
+
+  if (!fresh) {
+    return NextResponse.json({ ok: true, duplicate: true });
   }
 
   // Any non-paid event: record metric, do not forward paid.

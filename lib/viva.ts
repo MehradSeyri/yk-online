@@ -150,7 +150,7 @@ export function vivaIsPaid(
 /**
  * Retrieve transactions for a Viva order (reconcile path).
  * GET /checkout/v2/orders/{orderCode} — returns the order with a StateId.
- * StateId 2 == Paid. Best-effort mapping.
+ * Best-effort state mapping based on Viva order state IDs.
  */
 export async function vivaGetOrderStatus(orderCode: string): Promise<{
   status: FinalStatus;

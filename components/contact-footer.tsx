@@ -91,6 +91,9 @@ export function Footer() {
           YK<span>-Online</span>
         </Link>
         <nav className="footer__links">
+          <Link href="/contact">
+            <T cs="Kontakt" en="Contact" />
+          </Link>
           <Link href="/terms">
             <T cs="Obchodní podmínky" en="Terms & Conditions" />
           </Link>

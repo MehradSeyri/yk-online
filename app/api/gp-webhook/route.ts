@@ -98,12 +98,22 @@ export async function POST(req: NextRequest) {
     eventType: status,
     payload,
   });
-  if (!fresh) {
-    return NextResponse.json({ ok: true, duplicate: true });
-  }
 
   // 5. Status mapping.
   if (gpIsPaid(status)) {
+    if (!fresh) {
+      // Forward may have failed earlier after idempotency was written.
+      // If not confirmed yet, keep processing so provider retries can recover.
+      if (await alreadyConfirmed(orderId)) {
+        return NextResponse.json({ ok: true, duplicate: true, alreadyConfirmed: true });
+      }
+      log.warn("gp-webhook.duplicate_unconfirmed_retry", {
+        orderId,
+        transactionId,
+        status,
+      });
+    }
+
     // Monotonic: if already confirmed, ack without re-forwarding.
     if (await alreadyConfirmed(orderId)) {
       log.info("gp-webhook.already_confirmed", { orderId });
@@ -131,6 +141,10 @@ export async function POST(req: NextRequest) {
       );
     }
     return NextResponse.json({ ok: true, forwarded: true });
+  }
+
+  if (!fresh) {
+    return NextResponse.json({ ok: true, duplicate: true });
   }
 
   if (gpIsFailed(status)) {

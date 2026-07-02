@@ -1,7 +1,7 @@
 # Deployment — yk-online.eu (Vercel)
 
 One Next.js project serves both the public site (`/`, `/terms`, `/privacy`,
-`/complaints`) and the payment middleware (`/api/*`, `/web2/*`). Deploy to a
+`/complaints`, `/contact`) and the payment middleware (`/api/*`, `/web2/*`). Deploy to a
 **Node** host. This guide uses Vercel.
 
 > Not GitHub Pages — this is a Node app (crypto SHA512, server secrets, Prisma).
@@ -137,6 +137,10 @@ every link, all pointing at BBB.EU:
 curl https://yk-online.eu/api/health
 # -> {"ok":true,...}
 
+# contact page required by acquirer domain review
+curl -I https://yk-online.eu/contact
+# -> HTTP/2 200
+
 # viva verify handshake
 curl https://yk-online.eu/api/viva-webhook
 # -> {"Key":"..."}
@@ -153,6 +157,22 @@ Test with `GP_ENV=sandbox` / `VIVA_ENV=demo` first, then flip to live.
 
 ---
 
+## 8.1 Webhook reliability checks (must pass before live)
+
+1. Create a test order and complete a real demo payment.
+2. Verify that AAA receives one final `status='paid'` webhook.
+3. Simulate downstream outage (temporarily make `SHOP_WEBHOOK_URL` return 5xx).
+4. Trigger the same provider webhook retry.
+5. Verify BBB retries forwarding and AAA eventually receives `paid`.
+
+Expected with current code:
+- `confirmed` metric is written only after successful forward.
+- Duplicate provider events for already-confirmed orders are acknowledged with `200` and not re-forwarded.
+- Duplicate events for unconfirmed orders are retried safely.
+- Viva paid webhook is revalidated against Viva API before forwarding.
+
+---
+
 ## 8. Merchant-compliance info on the site (GP + Viva onboarding)
 
 Acquirers review the live site before activating live payments. Present:
@@ -163,6 +183,7 @@ Acquirers review the live site before activating live payments. Present:
 | Registered address | contact section + legal pages |
 | Company ID (IČO) / VAT (DIČ) | footer, contact, legal pages |
 | Contact e-mail + phone | contact section |
+| Dedicated contact page | `/contact` |
 | Terms & Conditions | `/terms` |
 | Privacy Policy (GDPR) | `/privacy` |
 | Complaints / refund / 14-day withdrawal | `/complaints` |
@@ -173,3 +194,58 @@ Acquirers review the live site before activating live payments. Present:
 > ℹ️ Phone `+420 775 170 443` set; DIČ/VAT removed (company shown as non-VAT).
 > If the company is **not** VAT-registered, also change the "včetně DPH /
 > including VAT" wording in the catalog note (`components/pricing.tsx`).
+
+---
+
+## 9. Incident Runbook (payments)
+
+Use this when customers report "paid but order still unpaid" or onboarding asks
+for operational controls.
+
+### A. Quick triage (5 minutes)
+
+1. Confirm BBB health:
+  - `GET /api/health`
+2. Check whether the order has a `confirmed` event in `payment_events`.
+3. Check `provider_webhook_events` for duplicate webhook delivery patterns.
+4. If no `confirmed`, run manual reconcile:
+  - `GET /api/reconcile` with `x-internal-secret`.
+
+### B. If provider webhook reached BBB but AAA was unavailable
+
+Current implementation keeps the order retryable:
+- `confirmed` is not persisted until `forwardToShop` succeeds.
+- duplicate paid webhook retries for unconfirmed orders are processed again.
+
+Action:
+1. Restore AAA webhook availability.
+2. Re-run reconcile or wait for provider retry.
+3. Verify AAA order transitioned to `paid`.
+
+### C. If Viva paid webhook is suspicious
+
+Current implementation performs server-side revalidation via Viva order status.
+
+Action:
+1. Inspect logs for `viva-webhook.paid_revalidation_failed` or
+  `viva-webhook.tx_mismatch`.
+2. Do not mark order paid manually until transaction is confirmed in Viva
+  dashboard/API.
+
+### D. Post-incident evidence pack
+
+Keep these artifacts for support/acquirer/audit:
+- timestamped BBB logs (`gp-webhook.*`, `viva-webhook.*`, `webhook.forward_*`)
+- `payment_events` rows for the order
+- `provider_webhook_events` rows for the order
+- AAA webhook response status/log excerpt
+
+---
+
+## 10. Minimal Go-Live Checklist (Viva)
+
+1. `https://yk-online.eu/contact` returns HTTP 200 and shows legal identity + contact.
+2. `GET /api/viva-webhook` returns `{ "Key": "..." }` with production key.
+3. Viva dashboard webhook/success/failure URLs match section 6 exactly.
+4. End-to-end demo payment completes and forwards `paid` to AAA.
+5. Retry/outage scenario from section 8.1 is validated.

@@ -93,6 +93,9 @@ export async function alreadyConfirmed(orderId: string): Promise<boolean> {
 export async function confirmAndForward(
   payload: ShopWebhookPayload
 ): Promise<boolean> {
+  const ok = await forwardToShop(payload);
+  if (!ok) return false;
+
   await recordMetric({
     provider: payload.provider,
     orderId: payload.orderId,
@@ -103,5 +106,5 @@ export async function confirmAndForward(
     currency: payload.currency,
     rawPayload: payload as unknown,
   });
-  return forwardToShop(payload);
+  return true;
 }
