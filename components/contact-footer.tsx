@@ -117,8 +117,8 @@ export function Footer() {
           <T
             as="span"
             className="footer__secure"
-            cs="🔒 Zabezpečené platby kartou přes certifikovanou platební bránu"
-            en="🔒 Secure card payments via a certified payment gateway"
+            cs="🔒 Online platby kartou přes Comgate (aktivace probíhá)"
+            en="🔒 Online card payments via Comgate (activation in progress)"
           />
         </div>
         <T

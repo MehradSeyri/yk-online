@@ -1,6 +1,7 @@
 import { getEnv } from "./env";
 import { log } from "./logger";
 import { gpCreatePayment } from "./gp";
+import { comgateCreatePayment } from "./comgate";
 import { vivaCreatePayment } from "./viva";
 import type {
   CreatePaymentInput,
@@ -13,6 +14,7 @@ function createWith(
   input: CreatePaymentInput
 ): Promise<CreatePaymentResult> {
   if (provider === "globalpayments") return gpCreatePayment(input);
+  if (provider === "comgate") return comgateCreatePayment(input);
   return vivaCreatePayment(input);
 }
 

@@ -586,6 +586,60 @@ h4 { font-size: 1rem; font-weight: 600; color: var(--dark); }
 .whyus__item h4 { margin-bottom: 4px; }
 .whyus__item p { color: var(--muted); font-size: .9375rem; }
 
+/* ===== COMPLIANCE ===== */
+.compliance__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.compliance-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 26px 24px;
+  box-shadow: var(--shadow);
+}
+
+.compliance-card--full {
+  grid-column: 1 / -1;
+}
+
+.compliance-card h3 {
+  margin-bottom: 12px;
+}
+
+.compliance-list {
+  list-style: disc;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compliance-list li {
+  color: var(--text);
+  font-size: .9375rem;
+  line-height: 1.6;
+}
+
+.compliance-list a,
+.compliance-links a {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.compliance-list a:hover,
+.compliance-links a:hover {
+  text-decoration: underline;
+}
+
+.compliance-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 16px;
+}
+
 /* ===== CONTACT ===== */
 .contact__grid {
   display: grid;
@@ -1115,6 +1169,7 @@ h4 { font-size: 1rem; font-weight: 600; color: var(--dark); }
   .hero__visual { display: none; }
   .pricing-carousel { grid-template-columns: 40px minmax(0, 1fr) 40px; }
   .pricing__grid { grid-auto-columns: calc((100% - 28px) / 2); }
+  .compliance__grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {
@@ -1158,7 +1213,7 @@ h4 { font-size: 1rem; font-weight: 600; color: var(--dark); }
   .modal { padding: 28px 20px; }
 }
 
-/* Footer payment methods / secure-payment strip (GP + Viva compliance) */
+/* Footer payment methods / secure-payment strip (Comgate onboarding compliance) */
 .footer__payments {
   display: flex;
   flex-wrap: wrap;

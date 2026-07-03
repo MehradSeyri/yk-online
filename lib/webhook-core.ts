@@ -86,6 +86,25 @@ export async function alreadyConfirmed(orderId: string): Promise<boolean> {
   return existing !== null;
 }
 
+/** Orders created directly on BBB.EU landing page (not originating from AAA.CZ). */
+export function isLocalDirectOrder(orderId: string): boolean {
+  return orderId.startsWith("BBBWEB-");
+}
+
+/** Mark a local BBB order as confirmed without forwarding to AAA.CZ. */
+export async function confirmLocalOnly(payload: ShopWebhookPayload): Promise<void> {
+  await recordMetric({
+    provider: payload.provider,
+    orderId: payload.orderId,
+    status: "confirmed",
+    transactionId: payload.transactionId,
+    orderCode: payload.providerRef,
+    amountCents: payload.amount,
+    currency: payload.currency,
+    rawPayload: payload as unknown,
+  });
+}
+
 /**
  * Confirm + forward a paid event to AAA.CZ. Returns whether the forward
  * succeeded. On failure the caller must return 5xx so the provider retries.

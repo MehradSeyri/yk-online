@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { T } from "./t";
 
 export function Services() {
@@ -109,6 +110,85 @@ export function WhyUs() {
                 cs="Všechny produkty vytvořeny marketingovými specialisty s praxí v digitálním prostředí."
                 en="All products created by marketing specialists with hands-on digital experience."
               />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function ShopCompliance() {
+  return (
+    <section className="compliance section" id="shop-info">
+      <div className="container">
+        <div className="section-header">
+          <T as="span" className="section-badge" cs="Informace pro zákazníky" en="Customer information" />
+          <T as="h2" cs="Náležitosti e-shopu" en="E-shop legal essentials" />
+          <T
+            as="p"
+            cs="Všechny povinné údaje, podmínky nákupu a právní dokumenty na jednom místě."
+            en="All required details, purchase terms and legal documents in one place."
+          />
+        </div>
+
+        <div className="compliance__grid">
+          <div className="compliance-card">
+            <T as="h3" cs="Provozovatel a kontakt" en="Merchant and contact" />
+            <ul className="compliance-list">
+              <li>
+                <T cs="YK Online, s.r.o., Radimovická 1773/15, Chodov, 149 00 Praha" en="YK Online, s.r.o., Radimovicka 1773/15, Chodov, 149 00 Prague" />
+              </li>
+              <li>
+                <T cs="IČO: 24062421" en="Company ID: 24062421" />
+              </li>
+              <li>
+                <a href="mailto:info@yk-online.eu">info@yk-online.eu</a>
+              </li>
+              <li>
+                <a href="tel:+420775170443">+420 775 170 443</a>
+              </li>
+              <li>
+                <Link href="/contact">
+                  <T cs="Kompletní kontaktní stránka" en="Full contact page" />
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div className="compliance-card">
+            <T as="h3" cs="Objednávka, dodání a platba" en="Ordering, delivery and payment" />
+            <ul className="compliance-list">
+              <li>
+                <T cs="Popis a cena každého produktu jsou uvedeny v katalogu výše." en="Product description and price are shown in the catalog above." />
+              </li>
+              <li>
+                <T cs="Objednávku provedete tlačítkem Koupit nyní / Mám zájem u konkrétní položky." en="You can place an order via the Buy now / I'm interested button on each item." />
+              </li>
+              <li>
+                <T cs="Digitální produkty doručujeme elektronicky, zpravidla ihned po úspěšné úhradě." en="Digital products are delivered electronically, usually immediately after successful payment." />
+              </li>
+              <li>
+                <T cs="Online platby kartou připravujeme přes platební bránu Comgate." en="Online card payments are being prepared via the Comgate payment gateway." />
+              </li>
+              <li>
+                <T cs="Web používá zabezpečené připojení HTTPS." en="The website uses secure HTTPS connection." />
+              </li>
+            </ul>
+          </div>
+
+          <div className="compliance-card compliance-card--full">
+            <T as="h3" cs="Právní dokumenty" en="Legal documents" />
+            <div className="compliance-links">
+              <Link href="/terms">
+                <T cs="Všeobecné obchodní podmínky" en="Terms and Conditions" />
+              </Link>
+              <Link href="/complaints">
+                <T cs="Reklamační podmínky, vrácení peněz a storno" en="Complaints policy, refunds and cancellations" />
+              </Link>
+              <Link href="/privacy">
+                <T cs="Ochrana osobních údajů" en="Privacy policy" />
+              </Link>
             </div>
           </div>
         </div>

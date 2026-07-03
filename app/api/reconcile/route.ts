@@ -3,12 +3,15 @@ import { getEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { prisma } from "@/lib/db";
 import { gpGetLinkStatus } from "@/lib/gp";
+import { comgateGetStatus } from "@/lib/comgate";
 import { vivaGetOrderStatus } from "@/lib/viva";
 import {
   recordIdempotency,
   recordMetric,
   alreadyConfirmed,
+  confirmLocalOnly,
   confirmAndForward,
+  isLocalDirectOrder,
 } from "@/lib/webhook-core";
 import type { Provider, ShopWebhookPayload } from "@/lib/types";
 
@@ -57,7 +60,9 @@ async function reconcile(): Promise<{
       const result =
         provider === "globalpayments"
           ? await gpGetLinkStatus(providerRef)
-          : await vivaGetOrderStatus(providerRef);
+          : provider === "comgate"
+            ? await comgateGetStatus(providerRef)
+            : await vivaGetOrderStatus(providerRef);
 
       if (result.status === "paid") {
         // Dedup so we never double-forward.
@@ -83,6 +88,17 @@ async function reconcile(): Promise<{
           email: "",
           fullName: "",
         };
+
+        if (isLocalDirectOrder(ev.orderId)) {
+          await confirmLocalOnly(forwardPayload);
+          paid++;
+          log.info("reconcile.local_paid_confirmed", {
+            orderId: ev.orderId,
+            provider,
+          });
+          continue;
+        }
+
         const ok = await confirmAndForward(forwardPayload);
         if (ok) {
           paid++;

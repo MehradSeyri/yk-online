@@ -236,12 +236,14 @@ function InquiryModal() {
   const [method, setMethod] = useState<"card" | "bank">("card");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Reset transient UI each time a new inquiry opens.
   useEffect(() => {
     setMethod("card");
     setErrors({});
     setDone(false);
+    setSubmitting(false);
   }, [inquiry]);
 
   const productName = inquiry?.name ?? "";
@@ -266,17 +268,80 @@ function InquiryModal() {
       ? "Po výběru bankovního převodu se vygeneruje QR kód pro platbu."
       : "After selecting bank transfer, a payment QR code will be generated.";
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submitting) return;
     const form = e.currentTarget;
     const name = (form.elements.namedItem("name") as HTMLInputElement).value;
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
     const next: Record<string, string> = {};
     if (name.trim().length < 2)
       next.name = lang === "cs" ? "Zadejte své jméno." : "Please enter your name.";
     if (!validateEmail(email.trim()))
       next.email = lang === "cs" ? "Zadejte platný e-mail." : "Please enter a valid e-mail.";
     if (Object.keys(next).length) return setErrors(next);
+
+    setErrors({});
+
+    if (method === "card") {
+      setSubmitting(true);
+      try {
+        const res = await fetch("/api/public-checkout", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            productName,
+            amount: parsed.amount,
+            currency: parsed.currency,
+            lang,
+            customerName: name.trim(),
+            customerEmail: email.trim(),
+            customerPhone: phone.trim(),
+          }),
+        });
+
+        const data = (await res.json()) as {
+          checkoutUrl?: string;
+          orderId?: string;
+          error?: string;
+        };
+
+        if (!res.ok || !data.checkoutUrl) {
+          setErrors({
+            submit:
+              (lang === "cs"
+                ? "Platbu se nepodařilo založit. Zkuste to prosím znovu."
+                : "Payment could not be initialized. Please try again.") +
+              (data.error ? ` (${data.error})` : ""),
+          });
+          return;
+        }
+
+        addOrder({
+          product: productName,
+          price: priceText,
+          paymentMethod: method,
+          date: new Date().toLocaleDateString(lang === "cs" ? "cs-CZ" : "en-GB"),
+          status: lang === "cs" ? "Čeká na úhradu" : "Awaiting payment",
+        });
+
+        window.location.assign(data.checkoutUrl);
+        return;
+      } catch {
+        setErrors({
+          submit:
+            lang === "cs"
+              ? "Došlo k chybě připojení. Zkuste to prosím znovu."
+              : "Connection error occurred. Please try again.",
+        });
+        return;
+      } finally {
+        setSubmitting(false);
+      }
+    }
 
     addOrder({
       product: productName,
@@ -308,7 +373,7 @@ function InquiryModal() {
                 checked={method === "card"}
                 onChange={() => setMethod("card")}
               />
-              <T cs="Online platba kartou (brzy aktivní)" en="Online card payment (coming soon)" />
+              <T cs="Online platba kartou (Comgate)" en="Online card payment (Comgate)" />
             </label>
             <label className="inquiry__method-option">
               <input
@@ -373,13 +438,26 @@ function InquiryModal() {
               <textarea id="inqMsg" name="message" rows={3} placeholder=" " />
             </div>
             <button type="submit" className="btn btn--primary btn--full">
-              <T cs="Odeslat poptávku" en="Send inquiry" />
+              {method === "card" ? (
+                <T cs="Pokračovat k platbě" en="Continue to payment" />
+              ) : (
+                <T cs="Odeslat poptávku" en="Send inquiry" />
+              )}
             </button>
+            <FieldError msg={errors.submit} />
             <T
               as="p"
               className="inquiry__note"
-              cs="Ozveme se vám do 24 hodin s platebními instrukcemi."
-              en="We will get back to you within 24 hours with payment instructions."
+              cs={
+                method === "card"
+                  ? "Po potvrzení budete přesměrováni na zabezpečenou platební bránu."
+                  : "Ozveme se vám do 24 hodin s platebními instrukcemi."
+              }
+              en={
+                method === "card"
+                  ? "After confirmation you will be redirected to a secure payment gateway."
+                  : "We will get back to you within 24 hours with payment instructions."
+              }
             />
           </form>
         </>

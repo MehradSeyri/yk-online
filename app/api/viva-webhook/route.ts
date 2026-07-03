@@ -6,7 +6,9 @@ import {
   recordIdempotency,
   recordMetric,
   alreadyConfirmed,
+  confirmLocalOnly,
   confirmAndForward,
+  isLocalDirectOrder,
 } from "@/lib/webhook-core";
 import type { ShopWebhookPayload } from "@/lib/types";
 
@@ -157,6 +159,11 @@ export async function POST(req: NextRequest) {
       email,
       fullName,
     };
+
+    if (isLocalDirectOrder(orderId)) {
+      await confirmLocalOnly(forwardPayload);
+      return NextResponse.json({ ok: true, localConfirmed: true });
+    }
 
     const ok = await confirmAndForward(forwardPayload);
     if (!ok) {

@@ -26,6 +26,8 @@ describe("webhooks integration", () => {
       recordMetric: vi.fn(),
       alreadyConfirmed,
       confirmAndForward,
+      confirmLocalOnly: vi.fn(),
+      isLocalDirectOrder: vi.fn().mockReturnValue(false),
     }));
 
     const route = await import("@/app/api/gp-webhook/route");
@@ -77,6 +79,8 @@ describe("webhooks integration", () => {
       recordMetric: vi.fn(),
       alreadyConfirmed: vi.fn().mockResolvedValue(false),
       confirmAndForward,
+      confirmLocalOnly: vi.fn(),
+      isLocalDirectOrder: vi.fn().mockReturnValue(false),
     }));
 
     const route = await import("@/app/api/viva-webhook/route");
@@ -132,6 +136,8 @@ describe("webhooks integration", () => {
       recordMetric: vi.fn(),
       alreadyConfirmed,
       confirmAndForward,
+      confirmLocalOnly: vi.fn(),
+      isLocalDirectOrder: vi.fn().mockReturnValue(false),
     }));
 
     const route = await import("@/app/api/viva-webhook/route");

@@ -3,7 +3,7 @@
  * All values here are server-side only and must never reach the client bundle.
  */
 
-type Provider = "globalpayments" | "viva";
+type Provider = "globalpayments" | "viva" | "comgate";
 
 function required(name: string): string {
   const v = process.env[name];
@@ -19,9 +19,9 @@ function optional(name: string, fallback = ""): string {
 }
 
 function asProvider(name: string, value: string): Provider {
-  if (value !== "globalpayments" && value !== "viva") {
+  if (value !== "globalpayments" && value !== "viva" && value !== "comgate") {
     throw new Error(
-      `[env] ${name} must be 'globalpayments' or 'viva', got: ${value}`
+      `[env] ${name} must be 'globalpayments', 'viva' or 'comgate', got: ${value}`
     );
   }
   return value;
@@ -39,27 +39,54 @@ function buildEnv() {
 
   const PAYMENT_PROVIDER_PRIMARY = asProvider(
     "PAYMENT_PROVIDER_PRIMARY",
-    optional("PAYMENT_PROVIDER_PRIMARY", "globalpayments")
+    optional("PAYMENT_PROVIDER_PRIMARY", "comgate")
   );
   const fallbackRaw = optional("PAYMENT_PROVIDER_FALLBACK", "");
   const PAYMENT_PROVIDER_FALLBACK: Provider | null = fallbackRaw
     ? asProvider("PAYMENT_PROVIDER_FALLBACK", fallbackRaw)
     : null;
 
+  const providerInUse = (provider: Provider) =>
+    PAYMENT_PROVIDER_PRIMARY === provider || PAYMENT_PROVIDER_FALLBACK === provider;
+
   // GlobalPayments
   const GP_ENV = optional("GP_ENV", "live");
-  const GP_APP_ID = required("GP_APP_ID");
-  const GP_APP_KEY = required("GP_APP_KEY");
+  const GP_APP_ID = providerInUse("globalpayments")
+    ? required("GP_APP_ID")
+    : optional("GP_APP_ID", "");
+  const GP_APP_KEY = providerInUse("globalpayments")
+    ? required("GP_APP_KEY")
+    : optional("GP_APP_KEY", "");
   const GP_ACCOUNT_NAME = optional("GP_ACCOUNT_NAME", "");
   const GP_API_VERSION = optional("GP_API_VERSION", "2021-03-22");
-  const GP_WEBHOOK_TOKEN = required("GP_WEBHOOK_TOKEN");
+  const GP_WEBHOOK_TOKEN = providerInUse("globalpayments")
+    ? required("GP_WEBHOOK_TOKEN")
+    : optional("GP_WEBHOOK_TOKEN", "");
+
+  // Comgate
+  const COMGATE_ENV = optional("COMGATE_ENV", "live");
+  const COMGATE_MERCHANT = providerInUse("comgate")
+    ? required("COMGATE_MERCHANT")
+    : optional("COMGATE_MERCHANT", "");
+  const COMGATE_SECRET = providerInUse("comgate")
+    ? required("COMGATE_SECRET")
+    : optional("COMGATE_SECRET", "");
+  const COMGATE_METHOD = optional("COMGATE_METHOD", "ALL");
 
   // Viva
   const VIVA_ENV = optional("VIVA_ENV", "live");
-  const VIVA_CLIENT_ID = required("VIVA_CLIENT_ID");
-  const VIVA_CLIENT_SECRET = required("VIVA_CLIENT_SECRET");
-  const VIVA_SOURCE_CODE = required("VIVA_SOURCE_CODE");
-  const VIVA_WEBHOOK_KEY = required("VIVA_WEBHOOK_KEY");
+  const VIVA_CLIENT_ID = providerInUse("viva")
+    ? required("VIVA_CLIENT_ID")
+    : optional("VIVA_CLIENT_ID", "");
+  const VIVA_CLIENT_SECRET = providerInUse("viva")
+    ? required("VIVA_CLIENT_SECRET")
+    : optional("VIVA_CLIENT_SECRET", "");
+  const VIVA_SOURCE_CODE = providerInUse("viva")
+    ? required("VIVA_SOURCE_CODE")
+    : optional("VIVA_SOURCE_CODE", "");
+  const VIVA_WEBHOOK_KEY = providerInUse("viva")
+    ? required("VIVA_WEBHOOK_KEY")
+    : optional("VIVA_WEBHOOK_KEY", "");
 
   const DATABASE_URL = required("DATABASE_URL");
   const CRON_SECRET = optional("CRON_SECRET", "");
@@ -79,6 +106,10 @@ function buildEnv() {
     GP_ACCOUNT_NAME,
     GP_API_VERSION,
     GP_WEBHOOK_TOKEN,
+    COMGATE_ENV,
+    COMGATE_MERCHANT,
+    COMGATE_SECRET,
+    COMGATE_METHOD,
     VIVA_ENV,
     VIVA_CLIENT_ID,
     VIVA_CLIENT_SECRET,
@@ -87,6 +118,7 @@ function buildEnv() {
     DATABASE_URL,
     CRON_SECRET,
     isGpLive: GP_ENV.toLowerCase() === "live",
+    isComgateLive: COMGATE_ENV.toLowerCase() === "live",
     isVivaLive: VIVA_ENV.toLowerCase() === "live",
   } as const;
 }

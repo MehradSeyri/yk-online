@@ -74,8 +74,12 @@ server-side — none are `NEXT_PUBLIC_*`, nothing reaches the browser.
 | `INTERNAL_API_SECRET` | long random string | **yes** | Shared with AAA.CZ; verified on `/api/create-order` + forward header |
 | `SHOP_WEBHOOK_URL` | `https://<ref>.supabase.co/functions/v1/payment-webhook` | no | AAA.CZ Edge Function |
 | `SHOP_SUPABASE_ANON_KEY` | Supabase anon key | **yes** | Sent as `apikey` + `Authorization: Bearer` |
-| `PAYMENT_PROVIDER_PRIMARY` | `globalpayments` | no | |
+| `PAYMENT_PROVIDER_PRIMARY` | `comgate` | no | |
 | `PAYMENT_PROVIDER_FALLBACK` | `viva` | no | Empty disables fallback |
+| `COMGATE_ENV` | `live` | no | `live` or `test` |
+| `COMGATE_MERCHANT` | from Comgate portal | no | Integrace → Propojení obchodu |
+| `COMGATE_SECRET` | from Comgate portal | **yes** | Heslo pro komunikaci na pozadí |
+| `COMGATE_METHOD` | `ALL` | no | `ALL` = plátce vybírá metodu |
 | `GP_ENV` | `live` | no | `live` or `sandbox` |
 | `GP_APP_ID` | from GP dashboard | no | |
 | `GP_APP_KEY` | from GP dashboard | **yes** | Never log/expose |
@@ -96,9 +100,12 @@ Generate secrets: `openssl rand -hex 32`.
 Startup validation (`lib/env.ts`) fails fast if a required var is missing — a
 route will 500 with a clear `[env] Missing required ...` log. Required:
 `SELF_URL`, `SHOP_DOMAIN`, `INTERNAL_API_SECRET`, `SHOP_WEBHOOK_URL`,
-`SHOP_SUPABASE_ANON_KEY`, `GP_APP_ID`, `GP_APP_KEY`, `GP_WEBHOOK_TOKEN`,
-`VIVA_CLIENT_ID`, `VIVA_CLIENT_SECRET`, `VIVA_SOURCE_CODE`, `VIVA_WEBHOOK_KEY`,
-`DATABASE_URL`.
+`SHOP_SUPABASE_ANON_KEY`, `DATABASE_URL`, plus provider-specific variables for
+providers used in `PAYMENT_PROVIDER_PRIMARY` / `PAYMENT_PROVIDER_FALLBACK`:
+
+- Comgate: `COMGATE_MERCHANT`, `COMGATE_SECRET`
+- Viva: `VIVA_CLIENT_ID`, `VIVA_CLIENT_SECRET`, `VIVA_SOURCE_CODE`, `VIVA_WEBHOOK_KEY`
+- GlobalPayments (legacy): `GP_APP_ID`, `GP_APP_KEY`, `GP_WEBHOOK_TOKEN`
 
 ---
 
@@ -116,11 +123,14 @@ curl https://yk-online.eu/api/reconcile -H "x-internal-secret: $INTERNAL_API_SEC
 
 ## 6. Provider dashboard configuration
 
-**GlobalPayments** — link notification URLs are set automatically by the code on
-every link, all pointing at BBB.EU:
-- return: `https://yk-online.eu/web2/gp-success`
-- cancel: `https://yk-online.eu/web2/gp-fail`
-- status: `https://yk-online.eu/api/gp-webhook?token=<GP_WEBHOOK_TOKEN>`
+**Comgate** — URLs are set per payment via `POST /v1.0/create` from BBB.EU:
+- paid return: `https://yk-online.eu/web2/comgate-success?transId=${id}&refId=${refId}`
+- cancelled return: `https://yk-online.eu/web2/comgate-fail?transId=${id}&refId=${refId}`
+- pending return: `https://yk-online.eu/web2/comgate-pending?transId=${id}&refId=${refId}`
+- background push: `https://yk-online.eu/api/comgate-webhook`
+
+In Comgate portal (Integrace → Nastavení obchodů → Propojení obchodu), keep URL
+configuration aligned to the same BBB.EU endpoints.
 
 **Viva** — set in the Viva dashboard:
 - Webhook URL: `https://yk-online.eu/api/viva-webhook`
@@ -145,6 +155,10 @@ curl -I https://yk-online.eu/contact
 curl https://yk-online.eu/api/viva-webhook
 # -> {"Key":"..."}
 
+# comgate webhook endpoint is online
+curl -i https://yk-online.eu/api/comgate-webhook
+# -> 200/405 depending on method; endpoint must be reachable
+
 # create-order (auth)
 curl -sX POST https://yk-online.eu/api/create-order \
   -H "x-internal-secret: $INTERNAL_API_SECRET" \
@@ -153,7 +167,7 @@ curl -sX POST https://yk-online.eu/api/create-order \
 # -> {"checkoutUrl":"...","provider":"...","providerRef":"..."}
 ```
 
-Test with `GP_ENV=sandbox` / `VIVA_ENV=demo` first, then flip to live.
+Test with `COMGATE_ENV=test` / `VIVA_ENV=demo` first, then flip to live.
 
 ---
 
@@ -235,7 +249,7 @@ Action:
 ### D. Post-incident evidence pack
 
 Keep these artifacts for support/acquirer/audit:
-- timestamped BBB logs (`gp-webhook.*`, `viva-webhook.*`, `webhook.forward_*`)
+- timestamped BBB logs (`comgate-webhook.*`, `gp-webhook.*`, `viva-webhook.*`, `webhook.forward_*`)
 - `payment_events` rows for the order
 - `provider_webhook_events` rows for the order
 - AAA webhook response status/log excerpt

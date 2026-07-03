@@ -1,7 +1,7 @@
 # BBB.EU Payment Middleware
 
 Invisible payment middleware between **AAA.CZ** (shop, Supabase) and the payment
-gateways. **GlobalPayments** is primary, **Viva** is fallback. The customer only
+gateways. **Comgate** is primary, **Viva** is fallback. The customer only
 ever sees AAA.CZ and the gateway's hosted checkout page. BBB.EU never renders
 customer-facing pages — it only creates payments, redirects, and forwards
 webhooks.
@@ -41,16 +41,17 @@ webhooks.
 | File | Purpose |
 |------|---------|
 | `lib/env.ts` | Fail-fast env validation |
-| `lib/gp-auth.ts` | GP access token (SHA512 nonce, cached) |
-| `lib/gp.ts` | GP create link + status retrieve |
+| `lib/comgate.ts` | Comgate create payment + status retrieve |
+| `app/api/comgate-webhook/route.ts` | Comgate background push webhook |
 | `lib/viva-auth.ts` | Viva OAuth2 token (cached) |
 | `lib/viva.ts` | Viva create order + status retrieve |
 | `lib/providers.ts` | Router with primary→fallback |
 | `lib/webhook-core.ts` | Dedup, metrics, confirm+forward |
 | `lib/forward.ts` | Forward to AAA.CZ Supabase |
 | `app/api/create-order/route.ts` | Entry from AAA.CZ |
-| `app/api/gp-webhook/route.ts` | GP webhook |
+| `app/api/gp-webhook/route.ts` | GP webhook (legacy) |
 | `app/api/viva-webhook/route.ts` | Viva webhook (GET verify + POST) |
+| `app/web2/comgate-success`/`comgate-fail`/`comgate-pending` | Comgate redirects |
 | `app/web2/gp-success`/`gp-fail` | GP redirects |
 | `app/web2/success`/`fail` | Viva redirects |
 | `app/api/reconcile/route.ts` | Cron reconciliation |
@@ -93,10 +94,17 @@ are client-side only (localStorage) — same behaviour as the original page.
 
 Point the gateway notification/return URLs at BBB.EU:
 
-**GlobalPayments** (set automatically on each link via `notifications`):
-- return: `${SELF_URL}/web2/gp-success`
-- cancel: `${SELF_URL}/web2/gp-fail`
-- status (webhook): `${SELF_URL}/api/gp-webhook?token=${GP_WEBHOOK_TOKEN}`
+**Comgate** (v1.0 create + background push):
+- create endpoint: `POST https://payments.comgate.cz/v1.0/create` (`prepareOnly=true`)
+- status endpoint: `POST https://payments.comgate.cz/v1.0/status`
+- return URLs per payment:
+  - paid: `${SELF_URL}/web2/comgate-success?transId=${id}&refId=${refId}`
+  - cancelled: `${SELF_URL}/web2/comgate-fail?transId=${id}&refId=${refId}`
+  - pending: `${SELF_URL}/web2/comgate-pending?transId=${id}&refId=${refId}`
+- background push URL: `${SELF_URL}/api/comgate-webhook`
+
+The webhook handler always re-validates paid status via `/v1.0/status` before
+forwarding to AAA.CZ.
 
 **Viva** (set in the Viva dashboard):
 - Webhook URL: `${SELF_URL}/api/viva-webhook`
@@ -106,10 +114,11 @@ Point the gateway notification/return URLs at BBB.EU:
 
 ## Status mapping
 
-**GP**
-- `CAPTURED`/`PAID` → forward `status='paid'` (metric `confirmed`)
-- `DECLINED`/`REJECTED`/`FAILED`/`CANCELLED`/`EXPIRED` → metric `failed`, no forward
-- `PENDING`/`AUTHORIZED`/`PREAUTHORIZED` → waiting, no forward
+**Comgate**
+- webhook/redirect input is treated as untrusted; status is verified via `/v1.0/status`
+- `PAID` → forward `status='paid'` (metric `confirmed`)
+- `CANCELLED` → metric `failed`, no forward
+- `PENDING`/`AUTHORIZED` → waiting, no forward
 
 **Viva** (strict)
 - `EventTypeId == 1796 && StatusId == 'F'` → forward `status='paid'`
@@ -127,7 +136,7 @@ x-internal-secret: <INTERNAL_API_SECRET>
 Body:
 ```json
 {
-  "provider": "globalpayments|viva",
+  "provider": "comgate|viva|globalpayments",
   "orderId": "...",
   "status": "paid",
   "transactionId": "...",
@@ -166,8 +175,7 @@ curl -s "$SELF_URL/api/viva-webhook"   # -> {"Key":"..."}
 curl -s "$SELF_URL/api/reconcile" -H "x-internal-secret: $INTERNAL_API_SECRET"
 ```
 
-Use sandbox first: `GP_ENV=sandbox`, `VIVA_ENV=demo` (any non-`live` value uses
-demo/sandbox hosts).
+Use test mode first: `COMGATE_ENV=test`, `VIVA_ENV=demo`.
 
 ## Security
 
