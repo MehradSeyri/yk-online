@@ -50,7 +50,7 @@ Implemented endpoints:
 
 Behavior:
 - Webhook is idempotent.
-- Payment status is always revalidated via Comgate /v1.0/status.
+- BBB uses Comgate REST v2 (`POST /v2.0/payment.json`) and payment status is always revalidated via `GET /v2.0/payment/transId/{transId}.json`.
 - For AAA-origin orders, paid events are forwarded to AAA payment-webhook.
 - For BBB direct web orders (orderId prefix BBBWEB-), paid is confirmed locally and not forwarded to AAA.
 

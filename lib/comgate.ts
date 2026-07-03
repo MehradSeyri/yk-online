@@ -11,7 +11,7 @@ function toMinorUnits(amount: number): number {
   return Math.round(amount * 100);
 }
 
-const BASE_URL = "https://payments.comgate.cz/v1.0";
+const BASE_URL = "https://payments.comgate.cz/v2.0";
 
 function parseForm(text: string): Record<string, string> {
   const params = new URLSearchParams(text);
@@ -26,6 +26,10 @@ function asBoolString(v: boolean): string {
   return v ? "true" : "false";
 }
 
+function asBool(v: boolean): boolean {
+  return v;
+}
+
 function shortLabel(input: CreatePaymentInput): string {
   const raw = input.customerTrns || `Order ${input.orderId}`;
   return raw.slice(0, 16);
@@ -33,6 +37,10 @@ function shortLabel(input: CreatePaymentInput): string {
 
 function normalizeCurrency(curr: string): string {
   return curr.trim().toUpperCase();
+}
+
+function basicAuth(merchant: string, secret: string): string {
+  return `Basic ${Buffer.from(`${merchant}:${secret}`, "utf8").toString("base64")}`;
 }
 
 function isPaidStatus(status: string): boolean {
@@ -47,53 +55,59 @@ export async function comgateCreatePayment(
   input: CreatePaymentInput
 ): Promise<CreatePaymentResult> {
   const env = getEnv();
+  const auth = basicAuth(env.COMGATE_MERCHANT, env.COMGATE_SECRET);
 
-  const payload = new URLSearchParams({
-    merchant: env.COMGATE_MERCHANT,
-    test: asBoolString(!env.isComgateLive),
-    price: String(toMinorUnits(input.amount)),
+  const payload: Record<string, unknown> = {
+    test: asBool(!env.isComgateLive),
+    price: toMinorUnits(input.amount),
     curr: normalizeCurrency(input.currency),
     label: shortLabel(input),
     refId: input.orderId,
     method: env.COMGATE_METHOD || "ALL",
-    prepareOnly: "true",
-    secret: env.COMGATE_SECRET,
     lang: normalizeLang(input.lang),
     delivery: "ELECTRONIC_DELIVERY",
     category: "OTHER",
     url_paid: `${env.SELF_URL}/web2/comgate-success?transId=${"${id}"}&refId=${"${refId}"}`,
     url_cancelled: `${env.SELF_URL}/web2/comgate-fail?transId=${"${id}"}&refId=${"${refId}"}`,
     url_pending: `${env.SELF_URL}/web2/comgate-pending?transId=${"${id}"}&refId=${"${refId}"}`,
-    url_push: `${env.SELF_URL}/api/comgate-webhook`,
-  });
+  };
 
-  if (input.customerEmail?.trim()) payload.set("email", input.customerEmail.trim());
-  if (input.customerPhone?.trim()) payload.set("phone", input.customerPhone.trim());
-  if (input.customerName?.trim()) payload.set("fullName", input.customerName.trim());
+  // Keep push URL explicitly aligned to BBB endpoint for each payment.
+  payload.url_push = `${env.SELF_URL}/api/comgate-webhook`;
+
+  if (input.customerEmail?.trim()) payload.email = input.customerEmail.trim();
+  if (input.customerPhone?.trim()) payload.phone = input.customerPhone.trim();
+  if (input.customerName?.trim()) payload.fullName = input.customerName.trim();
 
   // Comgate requires at least one contact value; prefer e-mail for better UX.
-  if (!payload.get("email") && !payload.get("phone")) {
-    payload.set("email", "info@yk-online.eu");
+  if (!payload.email && !payload.phone) {
+    payload.email = "info@yk-online.eu";
   }
 
   log.info("comgate.create.start", {
     orderId: input.orderId,
-    price: payload.get("price"),
-    currency: payload.get("curr"),
-    test: payload.get("test"),
+    price: payload.price,
+    currency: payload.curr,
+    test: asBoolString(!env.isComgateLive),
   });
 
-  const res = await fetch(`${BASE_URL}/create`, {
+  const res = await fetch(`${BASE_URL}/payment.json`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/x-www-form-urlencoded",
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: auth,
     },
-    body: payload.toString(),
+    body: JSON.stringify(payload),
   });
 
   const text = await res.text();
-  const parsed = parseForm(text);
+  let parsed: Record<string, unknown> = {};
+  try {
+    parsed = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    parsed = parseForm(text);
+  }
 
   if (!res.ok) {
     log.error("comgate.create.http_failed", {
@@ -104,29 +118,32 @@ export async function comgateCreatePayment(
     throw new Error(`Comgate create failed: HTTP ${res.status}`);
   }
 
-  if (parsed.code !== "0") {
+  if (String(parsed.code ?? "") !== "0") {
     log.error("comgate.create.api_failed", {
       orderId: input.orderId,
       code: parsed.code,
       message: parsed.message,
       body: text.slice(0, 500),
     });
-    throw new Error(`Comgate create failed: ${parsed.code || "unknown"}`);
+    throw new Error(`Comgate create failed: ${String(parsed.code ?? "unknown")}`);
   }
 
-  if (!parsed.transId || !parsed.redirect) {
+  const transId = typeof parsed.transId === "string" ? parsed.transId : "";
+  const redirect = typeof parsed.redirect === "string" ? parsed.redirect : "";
+
+  if (!transId || !redirect) {
     throw new Error("Comgate create failed: missing transId/redirect");
   }
 
   log.info("comgate.create.success", {
     orderId: input.orderId,
-    transId: parsed.transId,
+    transId,
   });
 
   return {
     provider: "comgate",
-    checkoutUrl: parsed.redirect,
-    providerRef: parsed.transId,
+    checkoutUrl: redirect,
+    providerRef: transId,
   };
 }
 
@@ -141,20 +158,14 @@ export async function comgateGetStatus(transId: string): Promise<{
   raw: unknown;
 }> {
   const env = getEnv();
+  const auth = basicAuth(env.COMGATE_MERCHANT, env.COMGATE_SECRET);
 
-  const payload = new URLSearchParams({
-    merchant: env.COMGATE_MERCHANT,
-    transId,
-    secret: env.COMGATE_SECRET,
-  });
-
-  const res = await fetch(`${BASE_URL}/status`, {
-    method: "POST",
+  const res = await fetch(`${BASE_URL}/payment/transId/${encodeURIComponent(transId)}.json`, {
+    method: "GET",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/x-www-form-urlencoded",
+      Accept: "application/json",
+      Authorization: auth,
     },
-    body: payload.toString(),
   });
 
   const text = await res.text();
@@ -167,8 +178,14 @@ export async function comgateGetStatus(transId: string): Promise<{
     return { status: "pending", raw: text.slice(0, 500) };
   }
 
-  const parsed = parseForm(text);
-  if (parsed.code !== "0") {
+  let parsed: Record<string, unknown> = {};
+  try {
+    parsed = JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    parsed = parseForm(text);
+  }
+
+  if (String(parsed.code ?? "") !== "0") {
     log.warn("comgate.status.api_failed", {
       transId,
       code: parsed.code,
@@ -177,21 +194,27 @@ export async function comgateGetStatus(transId: string): Promise<{
     return { status: "pending", raw: parsed };
   }
 
-  const remoteStatus = (parsed.status || "").toUpperCase();
+  const remoteStatus = String(parsed.status ?? "").toUpperCase();
   let status: FinalStatus = "pending";
   if (isPaidStatus(remoteStatus)) status = "paid";
   else if (isFailedStatus(remoteStatus)) status = "failed";
 
-  const amountMinor = parsed.price ? Number(parsed.price) : undefined;
+  const amountMinor = parsed.price !== undefined ? Number(parsed.price) : undefined;
 
   return {
     status,
-    transactionId: parsed.transId || transId,
+    transactionId:
+      typeof parsed.transId === "string" && parsed.transId ? parsed.transId : transId,
     amountMinor: Number.isFinite(amountMinor as number) ? amountMinor : undefined,
-    currency: parsed.curr,
-    orderId: parsed.refId,
-    email: parsed.email,
-    fullName: parsed.payerName || parsed.fullName,
+    currency: typeof parsed.curr === "string" ? parsed.curr : undefined,
+    orderId: typeof parsed.refId === "string" ? parsed.refId : undefined,
+    email: typeof parsed.email === "string" ? parsed.email : undefined,
+    fullName:
+      typeof parsed.payerName === "string"
+        ? parsed.payerName
+        : typeof parsed.fullName === "string"
+          ? parsed.fullName
+          : undefined,
     raw: parsed,
   };
 }

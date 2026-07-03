@@ -123,7 +123,13 @@ curl https://yk-online.eu/api/reconcile -H "x-internal-secret: $INTERNAL_API_SEC
 
 ## 6. Provider dashboard configuration
 
-**Comgate** — URLs are set per payment via `POST /v1.0/create` from BBB.EU:
+**Comgate** — BBB.EU uses REST v2 for payment creation and status checks:
+- create: `POST https://payments.comgate.cz/v2.0/payment.json`
+- status: `GET https://payments.comgate.cz/v2.0/payment/transId/{transId}.json`
+- auth: `Authorization: Basic base64(merchant:secret)`
+- content type: `application/json`
+
+URLs are still set per payment from BBB.EU payload:
 - paid return: `https://yk-online.eu/web2/comgate-success?transId=${id}&refId=${refId}`
 - cancelled return: `https://yk-online.eu/web2/comgate-fail?transId=${id}&refId=${refId}`
 - pending return: `https://yk-online.eu/web2/comgate-pending?transId=${id}&refId=${refId}`

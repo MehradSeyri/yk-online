@@ -94,16 +94,18 @@ are client-side only (localStorage) — same behaviour as the original page.
 
 Point the gateway notification/return URLs at BBB.EU:
 
-**Comgate** (v1.0 create + background push):
-- create endpoint: `POST https://payments.comgate.cz/v1.0/create` (`prepareOnly=true`)
-- status endpoint: `POST https://payments.comgate.cz/v1.0/status`
+**Comgate** (REST v2 create + background push):
+- create endpoint: `POST https://payments.comgate.cz/v2.0/payment.json`
+- status endpoint: `GET https://payments.comgate.cz/v2.0/payment/transId/{transId}.json`
+- auth: `Authorization: Basic base64(merchant:secret)`
+- request/response: `application/json`
 - return URLs per payment:
   - paid: `${SELF_URL}/web2/comgate-success?transId=${id}&refId=${refId}`
   - cancelled: `${SELF_URL}/web2/comgate-fail?transId=${id}&refId=${refId}`
   - pending: `${SELF_URL}/web2/comgate-pending?transId=${id}&refId=${refId}`
 - background push URL: `${SELF_URL}/api/comgate-webhook`
 
-The webhook handler always re-validates paid status via `/v1.0/status` before
+The webhook handler always re-validates paid status via `/v2.0/payment/transId/{transId}.json` before
 forwarding to AAA.CZ.
 
 **Viva** (set in the Viva dashboard):
@@ -115,7 +117,7 @@ forwarding to AAA.CZ.
 ## Status mapping
 
 **Comgate**
-- webhook/redirect input is treated as untrusted; status is verified via `/v1.0/status`
+- webhook/redirect input is treated as untrusted; status is verified via `/v2.0/payment/transId/{transId}.json`
 - `PAID` → forward `status='paid'` (metric `confirmed`)
 - `CANCELLED` → metric `failed`, no forward
 - `PENDING`/`AUTHORIZED` → waiting, no forward
