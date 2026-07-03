@@ -60,6 +60,18 @@ const EN = `
   <li>Personal data processing: see <a href="/privacy">Privacy Policy</a>.</li>
   <li>Commercial terms: see <a href="/terms">Terms and Conditions</a>.</li>
 </ul>
+
+<h2>Důležité informace pro zákazníky</h2>
+<ul>
+  <li>Popis produktu, cena a měna jsou vždy uvedeny u každé položky v katalogu.</li>
+  <li>Objednávku provedete tlačítkem Koupit nyní / Mám zájem u konkrétní položky.</li>
+  <li>Digitální produkty doručujeme elektronicky, obvykle ihned po úspěšné platbě.</li>
+  <li>Online platby kartou zpracovává platební brána Comgate.</li>
+  <li>Vrácení peněz, storno a reklamace: viz <a href="/complaints">Reklamační řád</a>.</li>
+  <li>Podmínky nákupu: viz <a href="/terms">Obchodní podmínky</a>.</li>
+  <li>Ochrana osobních údajů: viz <a href="/privacy">Zásady ochrany osobních údajů</a>.</li>
+  <li>Web je provozován výhradně přes zabezpečené HTTPS připojení.</li>
+</ul>
 `;
 
 export default function ContactPage() {
