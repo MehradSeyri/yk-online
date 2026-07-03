@@ -9,11 +9,11 @@ export function Services() {
       <div className="container">
         <div className="section-header">
           <T as="span" className="section-badge" cs="Co nabízíme" en="What we offer" />
-          <T as="h2" cs="Digitální produkty & poradenství" en="Digital products & consulting" />
+          <T as="h2" cs="Digitální produkty a vzdělávací obsah" en="Digital products and learning content" />
           <T
             as="p"
-            cs="Vše, co potřebujete pro úspěšný online marketing a digitální podnikání."
-            en="Everything you need for successful online marketing and digital business."
+            cs="B2B balíčky připravené pro interní týmy, agenturní provoz a firemní reporting."
+            en="B2B packages designed for in-house teams, agency operations and corporate reporting."
           />
         </div>
         <div className="services__grid">
@@ -22,8 +22,8 @@ export function Services() {
             <T as="h3" cs="Digitální šablony" en="Digital Templates" />
             <T
               as="p"
-              cs="Hotové šablony pro sociální sítě, branding, marketingové plány a prezentace — stáhnout a použít ihned."
-              en="Ready-made templates for social media, branding, marketing plans and presentations — download and use immediately."
+              cs="Firemní šablony pro kampaně, prezentace, newslettery a sales materiály s jednotným standardem."
+              en="Corporate templates for campaigns, presentations, newsletters and sales assets with consistent standards."
             />
           </div>
           <div className="card">
@@ -31,17 +31,17 @@ export function Services() {
             <T as="h3" cs="Online kurzy" en="Online Courses" />
             <T
               as="p"
-              cs="Video kurzy zaměřené na digitální marketing, SEO, sociální sítě a budování online businessu."
-              en="Video courses focused on digital marketing, SEO, social media and building an online business."
+              cs="Strukturované video moduly pro team leady a specialisty: plánování, výkon, governance a reporting."
+              en="Structured video modules for team leads and specialists: planning, performance, governance and reporting."
             />
           </div>
           <div className="card">
             <div className="card__icon">📈</div>
-            <T as="h3" cs="Marketingové poradenství" en="Marketing Consulting" />
+            <T as="h3" cs="Pracovní postupy" en="Workflows" />
             <T
               as="p"
-              cs="Strategické poradenství v oblasti digitálního marketingu, brandingu a rozvoje online podnikání."
-              en="Strategic consulting in digital marketing, branding and online business development."
+              cs="Workflow šablony pro schvalování, obsahové procesy a řízení kampaní napříč odděleními."
+              en="Workflow templates for approvals, content operations and campaign management across teams."
             />
           </div>
           <div className="card">
@@ -49,8 +49,8 @@ export function Services() {
             <T as="h3" cs="Nástroje & checklists" en="Tools & Checklists" />
             <T
               as="p"
-              cs="Praktické checklisty, audity, pracovní listy a frameworky pro každodenní marketingovou práci."
-              en="Practical checklists, audits, worksheets and frameworks for everyday marketing work."
+              cs="Auditní checklisty, kontrolní listy releasů a frameworky pro stabilní provoz marketingových aktivit."
+              en="Audit checklists, release control lists and frameworks for stable marketing operations."
             />
           </div>
         </div>
@@ -71,44 +71,44 @@ export function WhyUs() {
           <div className="whyus__item">
             <div className="whyus__icon">⚡</div>
             <div>
-              <T as="h4" cs="Okamžité doručení" en="Instant delivery" />
+              <T as="h4" cs="Okamžitý přístup" en="Instant access" />
               <T
                 as="p"
-                cs="Digitální produkty jsou k dispozici okamžitě po dokončení platby — žádné čekání."
-                en="Digital products are available immediately after payment — no waiting."
+                cs="Po úhradě získáte ihned přístup k zakoupeným materiálům bez čekání na manuální zpracování."
+                en="After payment, access to purchased materials is immediate with no manual processing delay."
               />
             </div>
           </div>
           <div className="whyus__item">
             <div className="whyus__icon">🔒</div>
             <div>
-              <T as="h4" cs="Bezpečná platba" en="Secure payment" />
+              <T as="h4" cs="Bezpečná úhrada" en="Secure payment" />
               <T
                 as="p"
-                cs="Šifrované platby kartou chráněné ověřenou platební bránou."
-                en="Encrypted card payments secured by a certified payment gateway."
+                cs="Šifrované online platby a transparentní platební instrukce pro firemní objednávky."
+                en="Encrypted online payments and transparent payment instructions for business orders."
               />
             </div>
           </div>
           <div className="whyus__item">
             <div className="whyus__icon">🔄</div>
             <div>
-              <T as="h4" cs="14denní garance vrácení peněz" en="14-day money-back guarantee" />
+              <T as="h4" cs="Transparentní podmínky" en="Transparent terms" />
               <T
                 as="p"
-                cs="Nejste spokojeni? Vrátíme vám peníze do 14 dnů bez zbytečných otázek."
-                en="Not satisfied? We'll refund your money within 14 days, no questions asked."
+                cs="Jasně definované obchodní podmínky, reklamační proces a podpora dostupná na jednom místě."
+                en="Clearly defined terms, complaint process and support details available in one place."
               />
             </div>
           </div>
           <div className="whyus__item">
             <div className="whyus__icon">✓</div>
             <div>
-              <T as="h4" cs="Obsah od odborníků" en="Expert-created content" />
+              <T as="h4" cs="Připraveno pro B2B použití" en="Built for B2B use" />
               <T
                 as="p"
-                cs="Všechny produkty vytvořeny marketingovými specialisty s praxí v digitálním prostředí."
-                en="All products created by marketing specialists with hands-on digital experience."
+                cs="Obsah je strukturovaný pro interní týmy a rychlé nasazení v menších i větších firmách."
+                en="Content is structured for in-house teams and fast deployment in small and large companies."
               />
             </div>
           </div>
@@ -163,13 +163,13 @@ export function ShopCompliance() {
                 <T cs="Popis a cena každého produktu jsou uvedeny v katalogu výše." en="Product description and price are shown in the catalog above." />
               </li>
               <li>
-                <T cs="Objednávku provedete tlačítkem Koupit nyní / Mám zájem u konkrétní položky." en="You can place an order via the Buy now / I'm interested button on each item." />
+                <T cs="Objednávku provedete tlačítkem Koupit nyní u konkrétní položky." en="You can place an order using the Buy now button on each item." />
               </li>
               <li>
-                <T cs="Digitální produkty doručujeme elektronicky, zpravidla ihned po úspěšné úhradě." en="Digital products are delivered electronically, usually immediately after successful payment." />
+                <T cs="Digitální produkty doručujeme elektronicky, zpravidla ihned po úspěšné úhradě." en="Digital products are delivered electronically, typically immediately after successful payment." />
               </li>
               <li>
-                <T cs="Online platby kartou připravujeme přes platební bránu Comgate." en="Online card payments are being prepared via the Comgate payment gateway." />
+                <T cs="Online platby kartou jsou zajištěny přes zabezpečenou platební bránu." en="Online card payments are processed via a secure payment gateway." />
               </li>
               <li>
                 <T cs="Web používá zabezpečené připojení HTTPS." en="The website uses secure HTTPS connection." />

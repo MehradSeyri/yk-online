@@ -8,7 +8,9 @@ export const metadata: Metadata = {
 
 const CS = `
 <div class="legal-notice">
-  Tyto obchodní podmínky upravují vztah mezi provozovatelem webové stránky <strong>yk-online.eu</strong> a zákazníky využívajícími poskytované služby. Před objednáním jakékoli služby si je prosím pečlivě přečtěte.
+  Tyto obchodní podmínky upravují vztah mezi provozovatelem webu <strong>yk-online.eu</strong>
+  a zákazníkem při nákupu digitálních produktů. Před odesláním objednávky si je
+  prosím pečlivě přečtěte.
 </div>
 
 <h2>1. Identifikace poskytovatele</h2>
@@ -22,47 +24,46 @@ const CS = `
 
 <h2>2. Vymezení pojmů</h2>
 <ul>
-  <li><strong>Poskytovatel</strong> — YK-Online, provozovatel webu yk-online.eu.</li>
-  <li><strong>Zákazník</strong> — fyzická nebo právnická osoba, která uzavírá smlouvu o poskytnutí služby.</li>
+  <li><strong>Prodávající</strong> — YK Online, s.r.o., provozovatel webu yk-online.eu.</li>
+  <li><strong>Zákazník</strong> — fyzická nebo právnická osoba, která uzavírá kupní smlouvu.</li>
   <li><strong>Spotřebitel</strong> — zákazník-fyzická osoba, která nejedná v rámci své podnikatelské činnosti.</li>
-  <li><strong>Služba</strong> — konzultační a marketingové poradenství nabízené prostřednictvím webu.</li>
-  <li><strong>Uživatelský účet</strong> — registrovaný účet na yk-online.eu.</li>
-  <li><strong>Objednávka</strong> — závazná žádost zákazníka o poskytnutí vybrané služby.</li>
+  <li><strong>Digitální produkt</strong> — elektronický obsah (napr. šablony, checklisty, kurzy, knihovny materiálů) dodávaný online.</li>
+  <li><strong>Objednávka</strong> — závazná žádost zákazníka o koupi vybraného digitálního produktu.</li>
 </ul>
 
-<h2>3. Rozsah služeb</h2>
-<p>Poskytovatel nabízí tyto druhy služeb:</p>
+<h2>3. Předmět prodeje</h2>
+<p>Na webu nabízíme digitální produkty určené zejména pro firemní týmy, interní marketing a agenturní provoz. Aktuální nabídka, obsah produktu a cena jsou vždy uvedeny přímo u dané položky v katalogu.</p>
 <ul>
-  <li><strong>Plán Starter ($25/měsíc)</strong> — jedno konzultační sezení měsíčně, audit online přítomnosti, základní marketingový plán a e-mailová podpora.</li>
-  <li><strong>Plán Custom (individuální cena)</strong> — rozsah služeb je stanoven individuálně dle požadavků zákazníka.</li>
+  <li>Digitální šablony a checklisty</li>
+  <li>Online kurzy a vzdělávací moduly</li>
+  <li>Tematické balíčky a knihovny obsahu</li>
 </ul>
-<p>Podrobný popis každého plánu je uveden na stránce ceníku. Obsah Custom plánu je upřesněn v samostatné smlouvě či e-mailové dohodě.</p>
 
 <h2>4. Uzavření smlouvy</h2>
-<p>Smlouva je uzavřena:</p>
+<p>Kupní smlouva je uzavřena takto:</p>
 <ol>
-  <li>Zákazník se zaregistruje a přihlásí na yk-online.eu.</li>
-  <li>Zákazník vybere požadovaný plán a klikne na tlačítko objednávky.</li>
-  <li>Zákazník vyplní objednávkový formulář a závazně objednávku potvrdí.</li>
-  <li>Poskytovatel odešle potvrzení objednávky e-mailem na adresu zákazníka — tímto okamžikem je smlouva uzavřena.</li>
+  <li>Zákazník vybere produkt v katalogu a otevře objednávkový formulář.</li>
+  <li>Vyplní požadované údaje a zvolí platební metodu.</li>
+  <li>Odesláním objednávky a úhradou ceny je kupní smlouva uzavřena.</li>
+  <li>Potvrzení objednávky obdrží zákazník e-mailem nebo v uživatelském rozhraní.</li>
 </ol>
-<p>Registrace a přihlášení jsou podmínkou pro dokončení objednávky a platby. <strong>Platební brána bude zprovozněna v nejbližší době</strong>; do té doby nelze objednávku uhradit prostřednictvím webu.</p>
+<p>Registrace není podmínkou nákupu, pokud objednávkový proces výslovně nevyžaduje jinak.</p>
 
 <h2>5. Ceny a platební podmínky</h2>
-<p>Ceny jsou uvedeny v amerických dolarech (USD) a jsou platné v okamžiku odeslání objednávky. Pokud je poskytovatel plátcem DPH, bude daň vyčíslena na daňovém dokladu.</p>
+<p>Cena produktu je uvedena u každé položky před odesláním objednávky. Ceny jsou uváděny v měně zobrazené v objednávce (CZK nebo EUR dle jazykové/měnové varianty webu). Nejsme plátci DPH.</p>
 <ul>
-  <li>Plán Starter: <strong>$25 / měsíc</strong>.</li>
-  <li>Plán Custom: cena je stanovena individuálně a potvrzena předem e-mailem.</li>
+  <li><strong>Primární metoda:</strong> bankovní převod pomocí QR kódu.</li>
+  <li><strong>Sekundární metoda:</strong> online platba kartou přes zabezpečenou platební bránu.</li>
 </ul>
-<p>Platba probíhá prostřednictvím platební brány integrované na webu (po jejím zprovoznění) nebo v dohodnuté alternativní formě. Zákazník je povinen uhradit cenu před zahájením plnění, není-li dohodnuto jinak.</p>
+<p>Zákazník je povinen uhradit cenu řádně a včas. Daňový doklad je vystaven v elektronické podobě.</p>
 
-<h2>6. Splatnost a předplatné</h2>
-<p>Plán Starter je fakturován měsíčně. Předplatné se automaticky obnovuje, pokud zákazník nezruší plán nejpozději <strong>3 dny před</strong> datem obnovení. Zrušení se provádí prostřednictvím nastavení účtu nebo zasláním e-mailu na <a href="mailto:info@yk-online.eu">info@yk-online.eu</a>.</p>
+<h2>6. Dodání digitálního obsahu</h2>
+<p>Digitální produkt je dodán elektronicky, zpravidla ihned po úspěšné úhradě. Dodání probíhá prostřednictvím odkazu ke stažení, zpřístupněním obsahu nebo zasláním přístupových údajů na e-mail zákazníka.</p>
 
 <h2>7. Odstoupení od smlouvy (spotřebitelé)</h2>
 <p>Spotřebitel má právo odstoupit od smlouvy uzavřené distančním způsobem bez udání důvodu ve lhůtě <strong>14 dnů</strong> ode dne uzavření smlouvy, v souladu s § 1829 odst. 1 zákona č. 89/2012 Sb., občanský zákoník.</p>
 <p>Odstoupení se provádí zasláním oznámení e-mailem na <a href="mailto:info@yk-online.eu">info@yk-online.eu</a>. V oznámení uveďte číslo objednávky a požadavek na odstoupení. Spotřebitel může použít vzorový formulář, není to však povinné.</p>
-<p><strong>Výjimka:</strong> Pokud spotřebitel výslovně souhlasí se zahájením plnění před uplynutím lhůty pro odstoupení a byl poučen o zániku práva na odstoupení, nárok na vrácení poplatku za již čerpanou část služby nevzniká.</p>
+<p><strong>Výjimka:</strong> U digitálního obsahu nedodaného na hmotném nosiči právo na odstoupení zaniká okamžikem, kdy bylo plnění zahájeno s výslovným souhlasem spotřebitele a spotřebitel byl poučen o tom, že tímto souhlasem právo na odstoupení ztrácí (§ 1837 písm. l občanského zákoníku).</p>
 <p>Při uzavírání smlouvy s podnikatelem (B2B) právo na odstoupení dle § 1829 OZ nevzniká, pokud není dohodnuto jinak.</p>
 
 <h2>8. Práva z vadného plnění a reklamace</h2>
@@ -72,11 +73,11 @@ const CS = `
 <p>Zpracování osobních údajů zákazníků se řídí dokumentem <a href="/privacy">Zásady ochrany osobních údajů</a>, který je nedílnou součástí těchto podmínek.</p>
 
 <h2>10. Odpovědnost a omezení</h2>
-<p>Poskytovatel vynaloží veškeré odborné úsilí ke splnění dohodnutých výsledků. Poradenské a marketingové výstupy jsou doporučeními a zákazník je odpovědný za jejich implementaci. Poskytovatel nenese odpovědnost za výsledky dosažené na základě realizace poskytnutých doporučení.</p>
-<p>Výše případné náhrady škody je omezena na výši uhrazené ceny za daný fakturační období, pokud právní předpisy nestanoví jinak (např. u spotřebitelů).</p>
+<p>Prodávající odpovídá za to, že dodaný digitální obsah odpovídá popisu uvedenému při objednávce. Neodpovídá za škodu vzniklou nevhodným použitím produktu zákazníkem nebo za výsledky podnikatelských rozhodnutí zákazníka.</p>
+<p>Výše případné náhrady škody je omezena na výši uhrazené ceny konkrétní objednávky, pokud právní předpisy nestanoví jinak.</p>
 
 <h2>11. Duševní vlastnictví</h2>
-<p>Veškerý obsah webu yk-online.eu (texty, grafika, kód) je chráněn autorským právem. Výstupy vytvořené pro zákazníka v rámci objednaných služeb přecházejí na zákazníka po úplném zaplacení ceny, pokud není smluvně ujednáno jinak.</p>
+<p>Veškerý obsah webu yk-online.eu (texty, grafika, kód, digitální produkty) je chráněn autorským právem. Zákazník získává nevýhradní licenci k užití zakoupeného digitálního produktu v rozsahu uvedeném u dané nabídky. Bez souhlasu prodávajícího není dovoleno obsah dále prodávat, veřejně šířit nebo poskytovat třetím osobám mimo licenční podmínky.</p>
 
 <h2>12. Mimosoudní řešení sporů</h2>
 <p>Spory se spotřebitelem lze mimosoudně řešit u <strong>České obchodní inspekce</strong> (<a href="https://www.coi.cz" target="_blank" rel="noopener noreferrer">www.coi.cz</a>) nebo prostřednictvím evropské platformy pro řešení sporů online (ODR) na adrese <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>.</p>
@@ -93,7 +94,9 @@ const CS = `
 
 const EN = `
 <div class="legal-notice">
-  These Terms and Conditions govern the relationship between the operator of <strong>yk-online.eu</strong> and customers using the services provided. Please read them carefully before placing any order.
+  These Terms and Conditions govern the relationship between the operator of
+  <strong>yk-online.eu</strong> and customers purchasing digital products.
+  Please read them carefully before placing an order.
 </div>
 
 <h2>1. Provider Identification</h2>
@@ -107,46 +110,45 @@ const EN = `
 
 <h2>2. Definitions</h2>
 <ul>
-  <li><strong>Provider</strong> — YK-Online, operator of yk-online.eu.</li>
-  <li><strong>Customer</strong> — any natural or legal person entering into a service agreement.</li>
+  <li><strong>Seller</strong> — YK Online, s.r.o., operator of yk-online.eu.</li>
+  <li><strong>Customer</strong> — any natural or legal person entering into a purchase contract.</li>
   <li><strong>Consumer</strong> — a Customer who is a natural person acting outside their professional or business activity.</li>
-  <li><strong>Service</strong> — consulting and marketing advisory services offered through the website.</li>
-  <li><strong>User Account</strong> — a registered account on yk-online.eu.</li>
-  <li><strong>Order</strong> — a binding request by the Customer to receive a selected service.</li>
+  <li><strong>Digital product</strong> — electronic content (e.g. templates, checklists, courses, content libraries) delivered online.</li>
+  <li><strong>Order</strong> — a binding request by the Customer to purchase a selected digital product.</li>
 </ul>
 
-<h2>3. Scope of Services</h2>
-<p>The Provider offers the following service plans:</p>
+<h2>3. Products Offered</h2>
+<p>The website offers digital products intended primarily for business teams, in-house marketing and agency operations. Product scope and pricing are always shown directly in the catalog.</p>
 <ul>
-  <li><strong>Starter Plan ($25/month)</strong> — one consultation session per month, online presence audit, basic marketing plan, and e-mail support.</li>
-  <li><strong>Custom Plan (individual pricing)</strong> — scope of services determined individually based on the Customer's requirements.</li>
+  <li>Digital templates and checklists</li>
+  <li>Online courses and learning modules</li>
+  <li>Thematic bundles and annual content libraries</li>
 </ul>
-<p>A detailed description of each plan is available on the pricing page. The scope of the Custom plan is specified in a separate agreement or e-mail correspondence.</p>
 
 <h2>4. Contract Formation</h2>
 <ol>
-  <li>The Customer registers and logs in to yk-online.eu.</li>
-  <li>The Customer selects the desired plan and clicks the order button.</li>
-  <li>The Customer completes the order form and confirms the order.</li>
-  <li>The Provider sends an order confirmation e-mail — the contract is formed at this moment.</li>
+  <li>The Customer selects a product in the catalog and opens checkout.</li>
+  <li>The Customer provides required details and chooses a payment method.</li>
+  <li>By submitting the order and completing payment, the purchase contract is concluded.</li>
+  <li>The Customer receives order confirmation by e-mail or in the user interface.</li>
 </ol>
-<p>Registration and login are required to complete an order and payment. <strong>The payment gateway will be activated shortly</strong>; until then, payment via the website is not available.</p>
+<p>Registration is not mandatory unless explicitly required by a specific checkout flow.</p>
 
 <h2>5. Prices and Payment</h2>
-<p>Prices are stated in US Dollars (USD) and are valid at the time of order submission. VAT will be specified on the tax invoice if the Provider is VAT-registered.</p>
+<p>Product price is shown for each catalog item before order submission. Prices are displayed in the order currency (CZK or EUR depending on website language/currency context). We are not VAT payers.</p>
 <ul>
-  <li>Starter Plan: <strong>$25 / month</strong>.</li>
-  <li>Custom Plan: price determined individually and confirmed in advance by e-mail.</li>
+  <li><strong>Primary method:</strong> bank transfer via QR code.</li>
+  <li><strong>Secondary method:</strong> online card payment via secure payment gateway.</li>
 </ul>
-<p>Payment is processed through the payment gateway integrated on the website (once activated) or in an agreed alternative form. The Customer must pay before the service commences, unless otherwise agreed.</p>
+<p>Customer must pay the order amount properly and on time. Tax invoice is issued electronically.</p>
 
-<h2>6. Billing and Subscriptions</h2>
-<p>The Starter Plan is billed monthly. The subscription renews automatically unless the Customer cancels at least <strong>3 days before</strong> the renewal date. Cancellation can be made via account settings or by e-mailing <a href="mailto:info@yk-online.eu">info@yk-online.eu</a>.</p>
+<h2>6. Digital Delivery</h2>
+<p>Digital products are delivered electronically, typically immediately after successful payment. Delivery is made by download link, content access, or access credentials sent to Customer's e-mail.</p>
 
 <h2>7. Right of Withdrawal (Consumers)</h2>
 <p>Consumers have the right to withdraw from a distance contract without stating a reason within <strong>14 days</strong> of contract formation, in accordance with Czech Civil Code § 1829(1) and EU Directive 2011/83/EU.</p>
 <p>To exercise this right, send a written notice to <a href="mailto:info@yk-online.eu">info@yk-online.eu</a> stating your order number and intention to withdraw. A model withdrawal form is available on request but is not mandatory.</p>
-<p><strong>Exception:</strong> If the Consumer expressly requests the commencement of services before the withdrawal period expires and acknowledges the loss of the right to withdraw, no refund for services already rendered will be due.</p>
+<p><strong>Exception:</strong> For digital content not supplied on a tangible medium, the right of withdrawal is lost once delivery has started with the Consumer's prior explicit consent and acknowledgment of withdrawal-right loss (Czech Civil Code § 1837(l)).</p>
 <p>Business customers (B2B) do not have a statutory right of withdrawal unless otherwise agreed.</p>
 
 <h2>8. Defective Performance and Complaints</h2>
@@ -156,11 +158,11 @@ const EN = `
 <p>The processing of Customers' personal data is governed by the <a href="/privacy">Privacy Policy</a>, which forms an integral part of these Terms.</p>
 
 <h2>10. Liability</h2>
-<p>The Provider will use professional best efforts to deliver agreed outputs. Consulting and marketing outputs are recommendations; the Customer is responsible for implementing them. The Provider is not liable for results achieved through implementing those recommendations.</p>
-<p>The Provider's liability for damages is limited to the fees paid during the relevant billing period, unless otherwise required by applicable law (e.g. consumer protection legislation).</p>
+<p>The Seller is responsible for delivering digital content matching the product description at order time. Seller is not liable for damage caused by improper use of products or for Customer's business decisions made using product content.</p>
+<p>Any liability for damages is limited to the amount paid for the specific order, unless mandatory law provides otherwise.</p>
 
 <h2>11. Intellectual Property</h2>
-<p>All content on yk-online.eu (texts, graphics, code) is protected by copyright. Deliverables created for the Customer as part of ordered services transfer to the Customer upon full payment, unless otherwise agreed in writing.</p>
+<p>All content on yk-online.eu (texts, graphics, code, digital products) is protected by copyright. Customer receives a non-exclusive license to use purchased digital content within the scope stated for the product. Resale, public distribution or sharing with third parties beyond license terms is prohibited without Seller consent.</p>
 
 <h2>12. Out-of-Court Dispute Resolution</h2>
 <p>Consumer disputes may be resolved out of court through the <strong>Czech Trade Inspection Authority</strong> (<a href="https://www.coi.cz" target="_blank" rel="noopener noreferrer">www.coi.cz</a>) or through the European Online Dispute Resolution platform at <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">ec.europa.eu/consumers/odr</a>.</p>

@@ -15,6 +15,7 @@ export type Lang = "cs" | "en";
 export type ModalId = "login" | "register" | "inquiry" | "dashboard" | null;
 
 export interface Order {
+  orderId?: string;
   product: string;
   price: string;
   paymentMethod: "card" | "bank";
@@ -183,10 +184,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
 
   const onPricingClick = useCallback(
     (productName: string, price: string) => {
-      if (isLoggedIn) openInquiry(productName, price);
-      else setActiveModal("login");
+      openInquiry(productName, price);
     },
-    [isLoggedIn, openInquiry]
+    [openInquiry]
   );
 
   const addOrder = useCallback((order: Order) => {

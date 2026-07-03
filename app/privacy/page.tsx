@@ -33,7 +33,7 @@ const CS = `
 <h3>b) Objednávkové a fakturační údaje</h3>
 <ul>
   <li>Jméno / název firmy, adresa, IČO/DIČ (jsou-li relevantní)</li>
-  <li>Přehled objednaných služeb a plateb</li>
+  <li>Přehled objednaných digitálních produktů a plateb</li>
   <li>Kontaktní e-mail pro zasílání faktur</li>
 </ul>
 
@@ -54,7 +54,7 @@ const CS = `
 <h2>3. Účely a právní základy zpracování</h2>
 
 <h3>Plnění smlouvy (čl. 6 odst. 1 písm. b) GDPR)</h3>
-<p>Správa uživatelského účtu, zpracování objednávek a plateb, komunikace při poskytování objednaných služeb.</p>
+<p>Správa uživatelského účtu, zpracování objednávek a plateb, komunikace při dodání objednaných digitálních produktů.</p>
 
 <h3>Oprávněný zájem (čl. 6 odst. 1 písm. f) GDPR)</h3>
 <p>Provoz a technické zabezpečení webu, ochrana před podvody a bezpečnostními incidenty, zlepšování kvality služeb na základě agregovaných dat.</p>
@@ -151,7 +151,7 @@ const EN = `
 <h3>b) Order and billing data</h3>
 <ul>
   <li>Name / company name, address, VAT number (where applicable)</li>
-  <li>History of ordered services and payments</li>
+  <li>History of ordered digital products and payments</li>
   <li>Billing e-mail address</li>
 </ul>
 
@@ -172,7 +172,7 @@ const EN = `
 <h2>3. Purposes and Legal Bases</h2>
 
 <h3>Contract performance (Art. 6(1)(b) GDPR)</h3>
-<p>User account management, order and payment processing, communication in the course of delivering ordered services.</p>
+<p>User account management, order and payment processing, communication in the course of delivering ordered digital products.</p>
 
 <h3>Legitimate interests (Art. 6(1)(f) GDPR)</h3>
 <p>Website operation and security, fraud prevention and security incident response, improving service quality using aggregated data.</p>

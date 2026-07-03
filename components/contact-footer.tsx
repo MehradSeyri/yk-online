@@ -21,7 +21,7 @@ export function Contact() {
         <div className="section-header">
           <T as="span" className="section-badge" cs="Napište nám" en="Get in touch" />
           <T as="h2" cs="Kontakt" en="Contact" />
-          <T as="p" cs="Máte otázky? Rádi odpovíme." en="Have questions? We'd be happy to answer." />
+          <T as="p" cs="Podpora pro firemní zákazníky, objednávky a fakturaci." en="Support for business customers, orders and invoicing." />
         </div>
         <div className="contact__grid">
           <form className="contact__form" onSubmit={onSubmit} noValidate>
@@ -48,8 +48,8 @@ export function Contact() {
             </button>
             <p className={`form__success${success ? "" : " hidden"}`}>
               {t(
-                "Zpráva odeslána! Brzy se vám ozveme.",
-                "Message sent! We'll get back to you shortly."
+                "Zpráva odeslána! Náš tým se vám brzy ozve.",
+                "Message sent! Our team will get back to you shortly."
               )}
             </p>
           </form>
@@ -117,8 +117,8 @@ export function Footer() {
           <T
             as="span"
             className="footer__secure"
-            cs="🔒 Online platby kartou přes Comgate (aktivace probíhá)"
-            en="🔒 Online card payments via Comgate (activation in progress)"
+            cs="🔒 Online platby kartou přes zabezpečenou platební bránu"
+            en="🔒 Online card payments via a secure payment gateway"
           />
         </div>
         <T

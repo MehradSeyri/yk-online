@@ -101,21 +101,21 @@ export function Hero() {
           <T
             as="div"
             className="hero__badge"
-            cs="Marketing & Online Business"
-            en="Marketing & Online Business"
+            cs="B2B Marketing Enablement"
+            en="B2B Marketing Enablement"
           />
           <T
             as="h1"
             className="hero__title"
             html
-            cs="Digitální know-how.<br>Okamžitě k dispozici."
-            en="Digital know-how.<br>Available instantly."
+            cs="Produktizované balíčky<br>pro firemní týmy."
+            en="Productized packages<br>for corporate teams."
           />
           <T
             as="p"
             className="hero__sub"
-            cs="Šablony, programy a nástroje pro digitální marketing, branding a online podnikání — vše připraveno ke stažení nebo ke spuštění."
-            en="Templates, programs and tools for digital marketing, branding and online business — ready to download or get started."
+            cs="Standardizované šablony, workflow a vzdělávací obsah pro interní marketing, reporting a kampaně. Rychlé nasazení bez složitých implementací."
+            en="Standardized templates, workflows and learning content for in-house marketing, reporting and campaigns. Fast deployment without complex implementation."
           />
           <div className="hero__cta">
             <button className="btn btn--primary btn--lg" onClick={onCta}>

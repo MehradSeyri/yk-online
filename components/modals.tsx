@@ -194,17 +194,17 @@ function RegisterModal() {
   );
 }
 
-const BANK_ACCOUNTS = {
-  CZK: "CZ6303000000000366778458",
-  EUR: "CZ9203000000000371157680",
-} as const;
-
 function parsePrice(text: string): { amount: number; currency: "CZK" | "EUR" } {
   if (!text) return { amount: 0, currency: "CZK" };
   const currency = text.includes("€") || text.includes("EUR") ? "EUR" : "CZK";
   const amount = Number(text.replace(/[^0-9]/g, "")) || 0;
   return { amount, currency };
 }
+
+const BANK_ACCOUNTS = {
+  CZK: "CZ6303000000000366778458",
+  EUR: "CZ9203000000000371157680",
+} as const;
 
 function createTransferQrUrl(
   iban: string,
@@ -226,256 +226,448 @@ function createTransferQrUrl(
     `X-VS:${vs}`,
     `MSG:${safeMsg}`,
   ].join("*");
-  return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+  return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
     payload
   )}`;
 }
 
 function InquiryModal() {
   const { lang, inquiry, userName, userEmail, addOrder, closeModals } = useSite();
-  const [method, setMethod] = useState<"card" | "bank">("card");
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [method, setMethod] = useState<"bank" | "card">("bank");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [zip, setZip] = useState("");
+  const [country, setCountry] = useState("CZ");
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [newsletter, setNewsletter] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Reset transient UI each time a new inquiry opens.
+  // Reset transient UI each time a new checkout opens.
   useEffect(() => {
-    setMethod("card");
-    setErrors({});
+    setStep(1);
+    setMethod("bank");
+    setName(userName || "");
+    setEmail(userEmail || "");
+    setPhone("");
+    setStreet("");
+    setCity("");
+    setZip("");
+    setCountry("CZ");
+    setAgreeTerms(true);
+    setNewsletter(false);
     setDone(false);
+    setErrors({});
     setSubmitting(false);
-  }, [inquiry]);
+  }, [inquiry, userName, userEmail]);
 
   const productName = inquiry?.name ?? "";
   const priceText = inquiry?.price ?? "";
   const parsed = parsePrice(priceText);
+  const hasFixedPrice = parsed.amount > 0;
   const iban = parsed.currency === "EUR" ? BANK_ACCOUNTS.EUR : BANK_ACCOUNTS.CZK;
   const qrUrl =
-    method === "bank" && parsed.amount > 0
+    hasFixedPrice
       ? createTransferQrUrl(iban, parsed.amount, parsed.currency, `YK-Online ${productName}`)
       : "";
 
-  const qrNote =
-    method === "bank"
-      ? parsed.amount > 0
-        ? lang === "cs"
-          ? "QR kód je připraven pro okamžitou platbu převodem."
-          : "QR code is ready for instant bank transfer payment."
-        : lang === "cs"
-        ? "U této položky není pevná částka. QR kód se vygeneruje po potvrzení ceny."
-        : "This item has no fixed amount. QR code will be generated after price confirmation."
-      : lang === "cs"
-      ? "Po výběru bankovního převodu se vygeneruje QR kód pro platbu."
-      : "After selecting bank transfer, a payment QR code will be generated.";
+  const validateStep = (current: 1 | 2 | 3): boolean => {
+    const next: Record<string, string> = {};
+    if (current === 1) {
+      if (name.trim().length < 2)
+        next.name =
+          lang === "cs" ? "Zadejte jméno a příjmení." : "Please enter full name.";
+      if (!validateEmail(email.trim()))
+        next.email =
+          lang === "cs" ? "Zadejte platný e-mail." : "Please enter a valid e-mail.";
+    }
+    if (current === 2) {
+      if (street.trim().length < 3)
+        next.street = lang === "cs" ? "Vyplňte ulici a číslo." : "Please enter street and number.";
+      if (city.trim().length < 2)
+        next.city = lang === "cs" ? "Vyplňte město." : "Please enter city.";
+      if (zip.trim().length < 3)
+        next.zip = lang === "cs" ? "Vyplňte PSČ." : "Please enter ZIP/postal code.";
+    }
+    if (current === 3 && !agreeTerms) {
+      next.terms =
+        lang === "cs"
+          ? "Pro pokračování potvrďte souhlas s podmínkami."
+          : "Please accept terms to continue.";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const nextStep = () => {
+    if (!validateStep(step)) return;
+    setStep((prev) => (prev < 3 ? ((prev + 1) as 1 | 2 | 3) : prev));
+  };
+
+  const prevStep = () => {
+    setErrors({});
+    setStep((prev) => (prev > 1 ? ((prev - 1) as 1 | 2 | 3) : prev));
+  };
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (submitting) return;
-    const form = e.currentTarget;
-    const name = (form.elements.namedItem("name") as HTMLInputElement).value;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
-    const next: Record<string, string> = {};
-    if (name.trim().length < 2)
-      next.name = lang === "cs" ? "Zadejte své jméno." : "Please enter your name.";
-    if (!validateEmail(email.trim()))
-      next.email = lang === "cs" ? "Zadejte platný e-mail." : "Please enter a valid e-mail.";
-    if (Object.keys(next).length) return setErrors(next);
-
-    setErrors({});
-
-    if (method === "card") {
-      setSubmitting(true);
-      try {
-        const res = await fetch("/api/public-checkout", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            productName,
-            amount: parsed.amount,
-            currency: parsed.currency,
-            lang,
-            customerName: name.trim(),
-            customerEmail: email.trim(),
-            customerPhone: phone.trim(),
-          }),
-        });
-
-        const data = (await res.json()) as {
-          checkoutUrl?: string;
-          orderId?: string;
-          error?: string;
-        };
-
-        if (!res.ok || !data.checkoutUrl) {
-          setErrors({
-            submit:
-              (lang === "cs"
-                ? "Platbu se nepodařilo založit. Zkuste to prosím znovu."
-                : "Payment could not be initialized. Please try again.") +
-              (data.error ? ` (${data.error})` : ""),
-          });
-          return;
-        }
-
-        addOrder({
-          product: productName,
-          price: priceText,
-          paymentMethod: method,
-          date: new Date().toLocaleDateString(lang === "cs" ? "cs-CZ" : "en-GB"),
-          status: lang === "cs" ? "Čeká na úhradu" : "Awaiting payment",
-        });
-
-        window.location.assign(data.checkoutUrl);
-        return;
-      } catch {
-        setErrors({
-          submit:
-            lang === "cs"
-              ? "Došlo k chybě připojení. Zkuste to prosím znovu."
-              : "Connection error occurred. Please try again.",
-        });
-        return;
-      } finally {
-        setSubmitting(false);
-      }
+    if (!hasFixedPrice) {
+      setErrors({
+        submit:
+          lang === "cs"
+            ? "Tento produkt má individuální cenu. Použijte prosím kontaktní formulář."
+            : "This product has custom pricing. Please use the contact form.",
+      });
+      return;
     }
 
-    addOrder({
-      product: productName,
-      price: priceText,
-      paymentMethod: method,
-      date: new Date().toLocaleDateString(lang === "cs" ? "cs-CZ" : "en-GB"),
-      status: lang === "cs" ? "Vyřizuje se" : "Processing",
-    });
-    setDone(true);
+    if (!validateStep(3)) return;
+
+    if (method === "bank") {
+      addOrder({
+        product: productName,
+        price: priceText,
+        paymentMethod: "bank",
+        date: new Date().toLocaleDateString(lang === "cs" ? "cs-CZ" : "en-GB"),
+        status: lang === "cs" ? "Čeká na úhradu (QR)" : "Awaiting payment (QR)",
+      });
+      setDone(true);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/public-checkout", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          productName,
+          amount: parsed.amount,
+          currency: parsed.currency,
+          lang,
+          customerName: name.trim(),
+          customerEmail: email.trim(),
+          customerPhone: phone.trim(),
+        }),
+      });
+
+      const data = (await res.json()) as {
+        checkoutUrl?: string;
+        orderId?: string;
+        error?: string;
+      };
+
+      if (!res.ok || !data.checkoutUrl) {
+        setErrors({
+          submit:
+            (lang === "cs"
+              ? "Platbu se nepodařilo založit. Zkuste to prosím znovu."
+              : "Payment could not be initialized. Please try again.") +
+            (data.error ? ` (${data.error})` : ""),
+        });
+        return;
+      }
+
+      addOrder({
+        orderId: data.orderId,
+        product: productName,
+        price: priceText,
+        paymentMethod: "card",
+        date: new Date().toLocaleDateString(lang === "cs" ? "cs-CZ" : "en-GB"),
+        status: lang === "cs" ? "Objednávka vytvořena" : "Order created",
+      });
+
+      window.location.assign(data.checkoutUrl);
+    } catch {
+      setErrors({
+        submit:
+          lang === "cs"
+            ? "Došlo k chybě připojení. Zkuste to prosím znovu."
+            : "Connection error occurred. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const stepLabel = (target: 1 | 2 | 3) => {
+    if (target === 1) return lang === "cs" ? "Kontakt" : "Contact";
+    if (target === 2) return lang === "cs" ? "Fakturační údaje" : "Billing details";
+    return lang === "cs" ? "Kontrola a platba" : "Review & pay";
   };
 
   return (
     <Overlay labelledBy="inquiryTitle" modalClass="modal--inquiry">
-      <T as="h2" id="inquiryTitle" cs="Zájem o produkt" en="Product inquiry" />
+      <T as="h2" id="inquiryTitle" cs="Dokončení objednávky" en="Complete your order" />
       <div className="inquiry__product">
-        <span className="inquiry__product-name">{productName}</span>
-        <span className="inquiry__product-price">{priceText}</span>
+        <div>
+          <span className="inquiry__product-name">{productName}</span>
+          <span className="inquiry__product-subline">
+            {lang === "cs" ? "Digitální produkt • doručení ihned po zaplacení" : "Digital product • delivered instantly after payment"}
+          </span>
+        </div>
+        <span className="inquiry__product-price">{priceText || (lang === "cs" ? "Na dotaz" : "On request")}</span>
       </div>
 
-      {!done && (
-        <>
-          <div className="inquiry__method">
-            <T as="p" className="inquiry__method-title" cs="Způsob úhrady" en="Payment method" />
-            <label className="inquiry__method-option">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="card"
-                checked={method === "card"}
-                onChange={() => setMethod("card")}
-              />
-              <T cs="Online platba kartou (Comgate)" en="Online card payment (Comgate)" />
-            </label>
-            <label className="inquiry__method-option">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="bank"
-                checked={method === "bank"}
-                onChange={() => setMethod("bank")}
-              />
-              <T cs="Bankovní převod" en="Bank transfer" />
-            </label>
-          </div>
-
-          <div className={`bankpay${method === "bank" ? "" : " hidden"}`}>
-            <T as="p" className="bankpay__title" cs="Platební údaje pro bankovní převod" en="Bank transfer payment details" />
-            <div className="bankpay__accounts">
-              <div>
-                <T as="p" className="bankpay__label" cs="Bankovní účet v CZK" en="Bank account in CZK" />
-                <p className="bankpay__value">366778458/0300</p>
-              </div>
-              <div>
-                <T as="p" className="bankpay__label" cs="Bankovní účet v EUR" en="Bank account in EUR" />
-                <p className="bankpay__value">CZ9203000000000371157680</p>
-              </div>
-            </div>
-            <div className="bankpay__qr">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                alt="Bank transfer QR"
-                className={qrUrl ? "" : "hidden"}
-                src={qrUrl || undefined}
-              />
-              <p className="bankpay__qr-note">{qrNote}</p>
-            </div>
-          </div>
-
-          <form className="modal__form" onSubmit={onSubmit} noValidate>
-            <div className="form-group">
-              <label htmlFor="inqName">
-                <T cs="Jméno a příjmení" en="Full name" />
-              </label>
-              <input type="text" id="inqName" name="name" autoComplete="name" required placeholder=" " defaultValue={userName} style={errBorder(!!errors.name)} />
-              <FieldError msg={errors.name} />
-            </div>
-            <div className="form-group">
-              <label htmlFor="inqEmail">
-                <T cs="E-mail" en="E-mail" />
-              </label>
-              <input type="email" id="inqEmail" name="email" autoComplete="email" required placeholder=" " defaultValue={userEmail} style={errBorder(!!errors.email)} />
-              <FieldError msg={errors.email} />
-            </div>
-            <div className="form-group">
-              <label htmlFor="inqPhone">
-                <T cs="Telefon (nepovinné)" en="Phone (optional)" />
-              </label>
-              <input type="tel" id="inqPhone" name="phone" autoComplete="tel" placeholder=" " />
-            </div>
-            <div className="form-group">
-              <label htmlFor="inqMsg">
-                <T cs="Zpráva / dotaz" en="Message / question" />
-              </label>
-              <textarea id="inqMsg" name="message" rows={3} placeholder=" " />
-            </div>
-            <button type="submit" className="btn btn--primary btn--full">
-              {method === "card" ? (
-                <T cs="Pokračovat k platbě" en="Continue to payment" />
-              ) : (
-                <T cs="Odeslat poptávku" en="Send inquiry" />
-              )}
-            </button>
-            <FieldError msg={errors.submit} />
-            <T
-              as="p"
-              className="inquiry__note"
-              cs={
-                method === "card"
-                  ? "Po potvrzení budete přesměrováni na zabezpečenou platební bránu."
-                  : "Ozveme se vám do 24 hodin s platebními instrukcemi."
-              }
-              en={
-                method === "card"
-                  ? "After confirmation you will be redirected to a secure payment gateway."
-                  : "We will get back to you within 24 hours with payment instructions."
-              }
-            />
-          </form>
-        </>
-      )}
-
-      {done && (
+      {!hasFixedPrice ? (
         <div className="inquiry__success">
-          <div className="inquiry__success-icon">✓</div>
-          <T as="h3" cs="Poptávka odeslána!" en="Inquiry sent!" />
+          <div className="inquiry__success-icon">!</div>
+          <T as="h3" cs="Tento produkt má cenu na vyžádání" en="This product is priced on request" />
           <T
             as="p"
-            cs="Děkujeme za zájem. Ozveme se vám na zadaný e-mail do 24 hodin s dalšími kroky."
-            en="Thank you for your interest. We will contact you at the provided e-mail within 24 hours with next steps."
+            cs="Pro individuální nabídku nám napište přes kontaktní stránku. Pro ostatní produkty můžete dokončit online objednávku kartou."
+            en="Please use the contact page for a custom quote. Fixed-price products can be purchased online by card."
           />
+          <button type="button" className="btn btn--outline btn--full" onClick={closeModals}>
+            <T cs="Rozumím" en="Understood" />
+          </button>
+        </div>
+      ) : done ? (
+        <div className="inquiry__success">
+          <div className="inquiry__success-icon">QR</div>
+          <T as="h3" cs="Objednávka vytvořena" en="Order created" />
+          <T
+            as="p"
+            cs="Dokončete prosím úhradu pomocí QR kódu. Po připsání platby vám produkt doručíme e-mailem."
+            en="Please complete the payment using the QR code. After funds are received, your product will be delivered by e-mail."
+          />
+          <div className="checkout-summary" style={{ width: "100%" }}>
+            <div className="checkout-summary__row">
+              <span>{lang === "cs" ? "Produkt" : "Product"}</span>
+              <strong>{productName}</strong>
+            </div>
+            <div className="checkout-summary__row">
+              <span>{lang === "cs" ? "Částka" : "Amount"}</span>
+              <strong>{priceText}</strong>
+            </div>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={qrUrl} alt="Bank transfer QR" style={{ width: 220, height: 220, borderRadius: 12, border: "1px solid #d7e0ea", padding: 6, background: "#fff" }} />
+          <p className="inquiry__note">
+            {lang === "cs"
+              ? `Účet ${parsed.currency}: ${iban}`
+              : `${parsed.currency} account: ${iban}`}
+          </p>
           <button type="button" className="btn btn--outline btn--full" onClick={closeModals}>
             <T cs="Zavřít" en="Close" />
           </button>
         </div>
+      ) : (
+        <form className="modal__form" onSubmit={onSubmit} noValidate>
+          <div className="checkout-steps" aria-label="Checkout steps">
+            {[1, 2, 3].map((s) => (
+              <div key={s} className={`checkout-step${step >= s ? " is-active" : ""}`}>
+                <span className="checkout-step__dot">{s}</span>
+                <span className="checkout-step__label">{stepLabel(s as 1 | 2 | 3)}</span>
+              </div>
+            ))}
+          </div>
+
+          {step === 1 && (
+            <div className="checkout-panel">
+              <h3>{lang === "cs" ? "Kontaktní údaje" : "Contact details"}</h3>
+              <div className="form-group">
+                <label htmlFor="inqName">
+                  <T cs="Jméno a příjmení" en="Full name" />
+                </label>
+                <input type="text" id="inqName" autoComplete="name" required placeholder=" " value={name} onChange={(e) => setName(e.target.value)} style={errBorder(!!errors.name)} />
+                <FieldError msg={errors.name} />
+              </div>
+              <div className="form-group">
+                <label htmlFor="inqEmail">
+                  <T cs="E-mail" en="E-mail" />
+                </label>
+                <input type="email" id="inqEmail" autoComplete="email" required placeholder=" " value={email} onChange={(e) => setEmail(e.target.value)} style={errBorder(!!errors.email)} />
+                <FieldError msg={errors.email} />
+              </div>
+              <div className="form-group">
+                <label htmlFor="inqPhone">
+                  <T cs="Telefon (nepovinné)" en="Phone (optional)" />
+                </label>
+                <input type="tel" id="inqPhone" autoComplete="tel" placeholder=" " value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="checkout-panel">
+              <h3>{lang === "cs" ? "Fakturační údaje" : "Billing details"}</h3>
+              <div className="form-group">
+                <label htmlFor="inqStreet">
+                  <T cs="Ulice a číslo" en="Street and number" />
+                </label>
+                <input type="text" id="inqStreet" autoComplete="address-line1" required placeholder=" " value={street} onChange={(e) => setStreet(e.target.value)} style={errBorder(!!errors.street)} />
+                <FieldError msg={errors.street} />
+              </div>
+              <div className="checkout-grid-2">
+                <div className="form-group">
+                  <label htmlFor="inqCity">
+                    <T cs="Město" en="City" />
+                  </label>
+                  <input type="text" id="inqCity" autoComplete="address-level2" required placeholder=" " value={city} onChange={(e) => setCity(e.target.value)} style={errBorder(!!errors.city)} />
+                  <FieldError msg={errors.city} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="inqZip">
+                    <T cs="PSČ" en="ZIP" />
+                  </label>
+                  <input type="text" id="inqZip" autoComplete="postal-code" required placeholder=" " value={zip} onChange={(e) => setZip(e.target.value)} style={errBorder(!!errors.zip)} />
+                  <FieldError msg={errors.zip} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="inqCountry">
+                  <T cs="Země" en="Country" />
+                </label>
+                <select
+                  id="inqCountry"
+                  className="checkout-select"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                >
+                  <option value="CZ">Czechia</option>
+                  <option value="SK">Slovakia</option>
+                  <option value="DE">Germany</option>
+                  <option value="AT">Austria</option>
+                  <option value="PL">Poland</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="checkout-panel">
+              <h3>{lang === "cs" ? "Shrnutí objednávky" : "Order summary"}</h3>
+              <div className="checkout-summary">
+                <div className="checkout-summary__row">
+                  <span>{lang === "cs" ? "Produkt" : "Product"}</span>
+                  <strong>{productName}</strong>
+                </div>
+                <div className="checkout-summary__row">
+                  <span>{lang === "cs" ? "Cena" : "Price"}</span>
+                  <strong>{priceText}</strong>
+                </div>
+                <div className="checkout-summary__row">
+                  <span>{lang === "cs" ? "Doručení" : "Delivery"}</span>
+                  <strong>{lang === "cs" ? "Ihned e-mailem" : "Instant via e-mail"}</strong>
+                </div>
+                <div className="checkout-summary__row checkout-summary__total">
+                  <span>{lang === "cs" ? "Celkem" : "Total"}</span>
+                  <strong>{priceText}</strong>
+                </div>
+              </div>
+
+              <div className="checkout-payment">
+                <p className="checkout-payment__title">
+                  {lang === "cs" ? "Platební metoda" : "Payment method"}
+                </p>
+                <label className="checkout-method-option">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={method === "bank"}
+                    onChange={() => setMethod("bank")}
+                  />
+                  <span>
+                    {lang === "cs"
+                      ? "Platba QR kódem (doporučeno)"
+                      : "QR code payment (recommended)"}
+                  </span>
+                </label>
+                <label className="checkout-method-option">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={method === "card"}
+                    onChange={() => setMethod("card")}
+                  />
+                  <span>{lang === "cs" ? "Online platba kartou" : "Online card payment"}</span>
+                </label>
+                <p className="checkout-payment__hint">
+                  {method === "bank"
+                    ? lang === "cs"
+                      ? "Po potvrzení objednávky se zobrazí QR kód a platební údaje pro okamžitý převod."
+                      : "After order confirmation, a QR code and transfer details will be shown."
+                    : lang === "cs"
+                      ? "Po kliknutí budete bezpečně přesměrováni na zabezpečenou platební bránu."
+                      : "After clicking, you will be securely redirected to a secure payment gateway."}
+                </p>
+              </div>
+
+              <label className="checkout-checkline">
+                <input
+                  type="checkbox"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                />
+                <span>
+                  {lang === "cs"
+                    ? "Souhlasím s obchodními podmínkami a zásadami ochrany osobních údajů."
+                    : "I agree with Terms and Privacy Policy."}
+                </span>
+              </label>
+              <FieldError msg={errors.terms} />
+
+              <label className="checkout-checkline checkout-checkline--muted">
+                <input
+                  type="checkbox"
+                  checked={newsletter}
+                  onChange={(e) => setNewsletter(e.target.checked)}
+                />
+                <span>
+                  {lang === "cs"
+                    ? "Chci dostávat novinky a slevy e-mailem."
+                    : "I want to receive updates and offers by e-mail."}
+                </span>
+              </label>
+            </div>
+          )}
+
+          <div className="checkout-actions">
+            {step > 1 ? (
+              <button type="button" className="btn btn--outline" onClick={prevStep}>
+                <T cs="Zpět" en="Back" />
+              </button>
+            ) : (
+              <span />
+            )}
+
+            {step < 3 ? (
+              <button type="button" className="btn btn--primary" onClick={nextStep}>
+                <T cs="Pokračovat" en="Continue" />
+              </button>
+            ) : (
+              <button type="submit" className="btn btn--primary" disabled={submitting}>
+                {method === "bank"
+                  ? lang === "cs"
+                    ? "Objednat a zobrazit QR kód"
+                    : "Place order and show QR code"
+                  : submitting
+                    ? lang === "cs"
+                      ? "Připravuji platbu..."
+                      : "Preparing payment..."
+                    : lang === "cs"
+                      ? "Objednat a zaplatit kartou"
+                      : "Place order and pay by card"}
+              </button>
+            )}
+          </div>
+
+          <FieldError msg={errors.submit} />
+          <p className="inquiry__note">
+            {lang === "cs"
+              ? "Primární metoda: QR platba převodem • Sekundární metoda: karta"
+              : "Primary method: QR bank payment • Secondary method: card"}
+          </p>
+        </form>
       )}
     </Overlay>
   );
@@ -503,11 +695,11 @@ function DashboardModal() {
         </div>
       </div>
       <div className="dash__section">
-        <T as="h3" cs="Moje poptávky" en="My inquiries" />
+        <T as="h3" cs="Moje objednávky" en="My orders" />
         <div>
           {orders.length === 0 ? (
             <p className="dash__empty">
-              {lang === "cs" ? "Zatím žádné poptávky." : "No inquiries yet."}
+              {lang === "cs" ? "Zatím žádné objednávky." : "No orders yet."}
             </p>
           ) : (
             orders.map((o, i) => (
@@ -515,6 +707,7 @@ function DashboardModal() {
                 <div className="dash__order-info">
                   <span className="dash__order-name">{o.product}</span>
                   <span className="dash__order-date">{o.date}</span>
+                  {o.orderId ? <span className="dash__order-date">#{o.orderId}</span> : null}
                 </div>
                 <div className="dash__order-right">
                   <span className="dash__order-price">{o.price}</span>
@@ -527,9 +720,7 @@ function DashboardModal() {
                       ? "Platba kartou"
                       : "Card payment"}
                   </span>
-                  <span className="dash__order-status">
-                    {lang === "cs" ? "Vyřizuje se" : "Processing"}
-                  </span>
+                  <span className="dash__order-status">{o.status}</span>
                 </div>
               </div>
             ))

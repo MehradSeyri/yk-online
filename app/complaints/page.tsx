@@ -56,7 +56,7 @@ const CS = `
 <h2>7. Způsob vyřízení reklamace</h2>
 <p>Reklamaci lze vyřešit:</p>
 <ul>
-  <li><strong>Opravou/doplněním</strong> — poskytnutí chybějícího výstupu nebo přepracování již dodaného dokumentu/konzultace.</li>
+  <li><strong>Opravou/doplněním</strong> — poskytnutí chybějícího obsahu nebo náhradního souboru.</li>
   <li><strong>Slevou</strong> — přiměřenou slevou z ceny fakturovaného období.</li>
   <li><strong>Vrácením peněz</strong> — v případě závažné vady nebo nemožnosti jiného řešení, a to převodem na bankovní účet zákazníka do 14 dnů od uznání reklamace.</li>
 </ul>
@@ -82,22 +82,22 @@ const EN = `
 </div>
 
 <h2>1. Scope</h2>
-<p>This policy applies to all services provided via <a href="https://yk-online.eu">yk-online.eu</a>, including but not limited to consultation sessions, marketing audits, prepared documents, and strategic plans.</p>
+<p>This policy applies to all digital products purchased via <a href="https://yk-online.eu">yk-online.eu</a>, especially templates, online courses, checklists, worksheets and marketing toolkits.</p>
 
 <h2>2. Rights from Defective Performance</h2>
-<p>A Customer may submit a complaint if the service provided:</p>
+<p>A Customer may submit a complaint if the purchased digital product:</p>
 <ul>
-  <li>does not match the agreed scope or content,</li>
-  <li>does not match the description on the website or in the order confirmation,</li>
-  <li>was not provided at all, or was provided so poorly that it has no practical value.</li>
+  <li>does not match the description or sample shown on the website or in order confirmation,</li>
+  <li>cannot be downloaded or accessed due to a technical issue on our side,</li>
+  <li>was delivered in a clearly corrupted or unreadable form.</li>
 </ul>
-<p>Customer dissatisfaction with outcomes that depend on factors outside the Provider's control (e.g. campaign performance driven by market conditions) does not constitute a defect.</p>
+<p>Customer dissatisfaction with business outcomes from product usage does not itself constitute a defect where product specifications are met.</p>
 
 <h2>3. Complaint Deadline</h2>
-<p>Complaints must be raised <strong>without undue delay</strong> after discovering the defect, and no later than <strong>6 months</strong> after the service was delivered or was due to be delivered.</p>
+<p>Complaints must be raised <strong>without undue delay</strong> after discovering the defect. Digital products are covered by a <strong>14-day money-back guarantee</strong>; within this period, Customer may request a refund without stating a reason.</p>
 <p>Consumers are entitled to the following remedies:</p>
 <ul>
-  <li>Free correction (re-delivery or supplementation of the output),</li>
+  <li>Free correction (re-delivery or supplementation of digital content),</li>
   <li>A reasonable price reduction,</li>
   <li>Withdrawal from the contract if the defect cannot be remedied or is not remedied within the set timeframe.</li>
 </ul>
@@ -125,7 +125,7 @@ const EN = `
 
 <h2>7. Complaint Resolution Options</h2>
 <ul>
-  <li><strong>Correction/supplementation</strong> — providing missing output or reworking an already-delivered document or consultation.</li>
+  <li><strong>Correction/supplementation</strong> — providing missing content or replacement file.</li>
   <li><strong>Price reduction</strong> — a reasonable discount on the invoiced amount for the relevant billing period.</li>
   <li><strong>Refund</strong> — in the event of a material defect or if no other remedy is possible; transferred to the Customer's bank account within 14 days of the complaint being upheld.</li>
 </ul>

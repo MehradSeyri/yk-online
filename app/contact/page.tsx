@@ -61,16 +61,16 @@ const EN = `
   <li>Commercial terms: see <a href="/terms">Terms and Conditions</a>.</li>
 </ul>
 
-<h2>Důležité informace pro zákazníky</h2>
+<h2>Important Information for Customers</h2>
 <ul>
-  <li>Popis produktu, cena a měna jsou vždy uvedeny u každé položky v katalogu.</li>
-  <li>Objednávku provedete tlačítkem Koupit nyní / Mám zájem u konkrétní položky.</li>
-  <li>Digitální produkty doručujeme elektronicky, obvykle ihned po úspěšné platbě.</li>
-  <li>Online platby kartou zpracovává platební brána Comgate.</li>
-  <li>Vrácení peněz, storno a reklamace: viz <a href="/complaints">Reklamační řád</a>.</li>
-  <li>Podmínky nákupu: viz <a href="/terms">Obchodní podmínky</a>.</li>
-  <li>Ochrana osobních údajů: viz <a href="/privacy">Zásady ochrany osobních údajů</a>.</li>
-  <li>Web je provozován výhradně přes zabezpečené HTTPS připojení.</li>
+  <li>Product description, price and currency are shown for each catalog item before checkout.</li>
+  <li>Orders are placed via the Buy now button on selected product cards.</li>
+  <li>Digital products are delivered electronically, typically immediately after successful payment.</li>
+  <li>Primary payment method is QR bank transfer; online card payment is available as a secondary method.</li>
+  <li>Refunds, cancellations and complaints: see <a href="/complaints">Complaints Policy</a>.</li>
+  <li>Purchase terms: see <a href="/terms">Terms and Conditions</a>.</li>
+  <li>Personal data processing: see <a href="/privacy">Privacy Policy</a>.</li>
+  <li>The website is operated exclusively over secure HTTPS connection.</li>
 </ul>
 `;
 
