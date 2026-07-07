@@ -114,6 +114,7 @@ export function Footer() {
         <div className="footer__payments">
           <span className="pay-badge pay-badge--visa">VISA</span>
           <span className="pay-badge pay-badge--mc">Mastercard</span>
+          <span className="pay-badge pay-badge--viva">Viva Payments</span>
           <T
             as="span"
             className="footer__secure"
