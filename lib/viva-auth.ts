@@ -21,7 +21,7 @@ export function vivaApiUrl(): string {
 }
 export function vivaCheckoutUrl(orderCode: string): string {
   const base = getEnv().isVivaLive ? LIVE_CHECKOUT : DEMO_CHECKOUT;
-  return `${base}/web2?ref=${encodeURIComponent(orderCode)}`;
+  return `${base}/web/checkout?ref=${encodeURIComponent(orderCode)}`;
 }
 
 interface TokenCache {
