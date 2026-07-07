@@ -15,6 +15,58 @@ import type { ShopWebhookPayload } from "@/lib/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// ---------------------------------------------------------------------------
+// Viva IP allowlist – source: https://developer.viva.com/webhooks-for-payments/
+// ---------------------------------------------------------------------------
+const VIVA_ALLOWED_RANGES: string[] = [
+  // Production
+  "51.138.37.238",
+  "40.127.253.112/28",
+  "51.105.129.192/28",
+  "20.54.89.16",
+  "4.223.76.50",
+  "51.12.157.0/28",
+  // Demo
+  "20.50.240.57",
+  "40.74.20.78",
+  "195.167.87.181",
+  "195.167.87.180",
+  "20.13.195.185",
+  "135.225.16.50",
+];
+
+function ipToUint32(ip: string): number {
+  return (
+    ip
+      .split(".")
+      .reduce((acc, octet) => ((acc << 8) + parseInt(octet, 10)) >>> 0, 0) >>> 0
+  );
+}
+
+function isVivaIp(raw: string): boolean {
+  // Strip port and IPv6-mapped prefix (::ffff:) if present.
+  const ip = raw.trim().replace(/^::ffff:/, "").split(":")[0];
+  for (const range of VIVA_ALLOWED_RANGES) {
+    if (range.includes("/")) {
+      const [network, prefixStr] = range.split("/");
+      const prefix = parseInt(prefixStr, 10);
+      const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
+      if ((ipToUint32(ip) & mask) === (ipToUint32(network) & mask)) return true;
+    } else if (ip === range) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function getClientIp(req: NextRequest): string | null {
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return null;
+}
+
 // Viva ISO-numeric -> alpha-3 currency for the normalized forward payload.
 const NUMERIC_TO_ALPHA: Record<string, string> = {
   "978": "EUR",
@@ -34,13 +86,92 @@ function num(v: unknown): number | null {
   return null;
 }
 
-/** GET: Viva webhook verification handshake. */
+/** GET: Viva webhook verification handshake.
+ *
+ * Priority:
+ *  1. VIVA_WEBHOOK_KEY env var (if set and not the placeholder "tbd")
+ *  2. Dynamic fetch from Viva API using OAuth2 Bearer token
+ *     (works for Smart Checkout / OAuth2 merchant accounts where
+ *      the legacy Basic-auth endpoint returns 404)
+ *
+ * Viva requires a clean HTTP 200 + {"Key":"..."} – never throws. */
 export async function GET() {
-  const env = getEnv();
-  return NextResponse.json({ Key: env.VIVA_WEBHOOK_KEY });
+  // Fast path: pre-configured static key.
+  const staticKey = process.env.VIVA_WEBHOOK_KEY ?? "";
+  if (staticKey && staticKey !== "tbd") {
+    return NextResponse.json({ Key: staticKey });
+  }
+
+  // Dynamic path: fetch the key from Viva using OAuth2 Bearer token.
+  try {
+    const clientId = process.env.VIVA_CLIENT_ID ?? "";
+    const clientSecret = process.env.VIVA_CLIENT_SECRET ?? "";
+    if (!clientId || !clientSecret) {
+      log.warn("viva-webhook.get_missing_credentials", {});
+      return NextResponse.json({ Key: "" });
+    }
+
+    const isLive = (process.env.VIVA_ENV ?? "live").toLowerCase() === "live";
+    const accountsBase = isLive
+      ? "https://accounts.vivapayments.com"
+      : "https://demo-accounts.vivapayments.com";
+    // Note: webhook key endpoint lives on the legacy merchant API host (www/demo),
+    // NOT on the OAuth2 API host (api/demo-api).
+    const merchantApiBase = isLive
+      ? "https://www.vivapayments.com"
+      : "https://demo.vivapayments.com";
+
+    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    const tokenRes = await fetch(`${accountsBase}/connect/token`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basic}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+    });
+
+    if (!tokenRes.ok) {
+      const body = await tokenRes.text();
+      log.warn("viva-webhook.get_token_failed", { status: tokenRes.status, body: body.slice(0, 200) });
+      return NextResponse.json({ Key: "" });
+    }
+
+    const { access_token } = (await tokenRes.json()) as { access_token?: string };
+    if (!access_token) {
+      log.warn("viva-webhook.get_token_empty", {});
+      return NextResponse.json({ Key: "" });
+    }
+
+    const keyRes = await fetch(`${merchantApiBase}/api/messages/config/token`, {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+
+    if (!keyRes.ok) {
+      log.warn("viva-webhook.get_key_failed", { status: keyRes.status });
+      return NextResponse.json({ Key: "" });
+    }
+
+    const keyData = (await keyRes.json()) as { Key?: string };
+    log.info("viva-webhook.get_key_ok", {});
+    return NextResponse.json({ Key: keyData.Key ?? "" });
+  } catch (err) {
+    log.warn("viva-webhook.get_key_error", { err: String(err) });
+    return NextResponse.json({ Key: "" });
+  }
 }
 
 export async function POST(req: NextRequest) {
+  // IP allowlist: only accept calls from Viva's documented ranges.
+  // Skipped in local development to allow testing with curl.
+  if (process.env.NODE_ENV === "production") {
+    const clientIp = getClientIp(req);
+    if (!clientIp || !isVivaIp(clientIp)) {
+      log.warn("viva-webhook.ip_blocked", { ip: clientIp ?? "unknown" });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
+
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;

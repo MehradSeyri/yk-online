@@ -138,9 +138,61 @@ URLs are still set per payment from BBB.EU payload:
 In Comgate portal (Integrace → Nastavení obchodů → Propojení obchodu), keep URL
 configuration aligned to the same BBB.EU endpoints.
 
-**Viva** — set in the Viva dashboard:
-- Webhook URL: `https://yk-online.eu/api/viva-webhook`
-  (Viva calls `GET` first → app returns `{ "Key": VIVA_WEBHOOK_KEY }`)
+**Viva** — set in the Viva banking app (Settings → API Access → Webhooks):
+
+### Step 1 – Generate VIVA_WEBHOOK_KEY
+
+Before registering the webhook URL in the dashboard you need the verification key.
+Call Viva's API with Basic auth (Merchant ID + API Key from Settings → API Access → General):
+
+```bash
+# Production  (note: www.vivapayments.com, NOT api.vivapayments.com)
+curl -u "<MerchantId>:<ApiKey>" \
+  https://www.vivapayments.com/api/messages/config/token
+
+# Demo
+curl -u "<MerchantId>:<ApiKey>" \
+  https://demo.vivapayments.com/api/messages/config/token
+
+# Response: {"Key":"46E655DAACB576BC53850614F51C21301FE47460"}
+```
+
+Set the returned value as `VIVA_WEBHOOK_KEY` in Vercel → Settings → Environment
+Variables, then **redeploy** so the GET handler serves the new key.
+
+Verify the endpoint is live before going to Step 2:
+```bash
+curl https://yk-online.eu/api/viva-webhook
+# must return {"Key":"<non-empty string>"}
+```
+
+### Step 2 – Register and verify the URL in Viva dashboard
+
+1. Login → Settings → API Access → Webhooks → **Create Webhook**
+2. Enter URL: `https://yk-online.eu/api/viva-webhook`
+3. Click **Verify** — Viva calls `GET` on that URL; app returns `{ "Key": "..." }`
+4. Select Event Type: **Transaction Payment Created** (EventTypeId 1796)
+5. Check **Active** → **Save**
+
+Repeat for **Transaction Failed** (1798) and **Order Updated** (4865) as needed.
+
+### IP allowlist (application layer)
+
+The webhook route (`app/api/viva-webhook/route.ts`) enforces Viva's documented
+IP ranges in production via `x-real-ip` / `x-forwarded-for`. Requests from
+outside these ranges are rejected with HTTP 403. No changes to `vercel.json` or
+Vercel firewall are required.
+
+**Production IPs:** `51.138.37.238`, `40.127.253.112/28`, `51.105.129.192/28`,
+`20.54.89.16`, `4.223.76.50`, `51.12.157.0/28`
+
+**Demo IPs:** `20.50.240.57`, `40.74.20.78`, `195.167.87.181`, `195.167.87.180`,
+`20.13.195.185`, `135.225.16.50`
+
+The check is skipped when `NODE_ENV !== "production"` so local testing with
+`curl` or Postman still works.
+
+Other Viva URLs:
 - success URL: `https://yk-online.eu/web2/success`
 - failure URL: `https://yk-online.eu/web2/fail`
 
