@@ -5,6 +5,7 @@ import { normalizeLang } from "@/lib/lang";
 import { log } from "@/lib/logger";
 import { recordMetric } from "@/lib/webhook-core";
 import { toMinorUnits } from "@/lib/gp";
+import { validateCoupon, applyDiscount } from "@/lib/coupons";
 import type { CreatePaymentInput } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
     amount?: number;
     currency?: string;
     lang?: string;
+    couponCode?: string;
     customerEmail?: string;
     customerName?: string;
     customerPhone?: string;
@@ -50,15 +52,30 @@ export async function POST(req: NextRequest) {
   const productName = typeof body.productName === "string" ? body.productName.trim() : "";
   const amount = typeof body.amount === "number" ? body.amount : NaN;
   const currency = typeof body.currency === "string" ? body.currency.trim().toUpperCase() : "";
+  const couponCode = typeof body.couponCode === "string" ? body.couponCode.trim() : "";
 
   if (!productName) return bad("productName is required");
   if (!Number.isFinite(amount) || amount <= 0) return bad("amount must be a positive number");
   if (!currency || currency.length !== 3) return bad("currency must be ISO alpha-3");
 
+  // Server-side coupon validation — authoritative, client cannot bypass.
+  let finalAmount = amount;
+  let discountPct = 0;
+  if (couponCode) {
+    const pct = validateCoupon(couponCode);
+    if (pct !== null) {
+      discountPct = pct;
+      finalAmount = applyDiscount(amount, pct);
+      if (finalAmount < 0.01) finalAmount = 0.01;
+    } else {
+      return bad("Invalid coupon code", 400);
+    }
+  }
+
   const orderId = createPublicOrderId();
   const input: CreatePaymentInput = {
     orderId,
-    amount,
+    amount: finalAmount,
     currency,
     lang: body.lang,
     customerTrns: productName,
@@ -70,7 +87,10 @@ export async function POST(req: NextRequest) {
   log.info("public-checkout.start", {
     orderId,
     productName,
-    amount: toMinorUnits(amount),
+    amount: toMinorUnits(finalAmount),
+    originalAmount: toMinorUnits(amount),
+    discountPct,
+    couponCode: couponCode || undefined,
     currency,
     primary: env.PAYMENT_PROVIDER_PRIMARY,
   });
@@ -83,7 +103,7 @@ export async function POST(req: NextRequest) {
       orderId,
       status: "initiated",
       orderCode: result.providerRef,
-      amountCents: toMinorUnits(amount),
+      amountCents: toMinorUnits(finalAmount),
       currency,
       lang: normalizeLang(input.lang),
       rawPayload: {

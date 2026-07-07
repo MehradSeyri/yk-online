@@ -247,6 +247,10 @@ function InquiryModal() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponApplied, setCouponApplied] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponStatus, setCouponStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
 
   // Reset transient UI each time a new checkout opens.
   useEffect(() => {
@@ -264,6 +268,10 @@ function InquiryModal() {
     setDone(false);
     setErrors({});
     setSubmitting(false);
+    setCouponInput("");
+    setCouponApplied("");
+    setCouponDiscount(0);
+    setCouponStatus("idle");
   }, [inquiry, userName, userEmail]);
 
   const productName = inquiry?.name ?? "";
@@ -271,10 +279,45 @@ function InquiryModal() {
   const parsed = parsePrice(priceText);
   const hasFixedPrice = parsed.amount > 0;
   const iban = parsed.currency === "EUR" ? BANK_ACCOUNTS.EUR : BANK_ACCOUNTS.CZK;
+
+  // Final amount after coupon (authoritative value for payment and QR).
+  const finalAmount =
+    couponDiscount > 0
+      ? Math.round(parsed.amount * (100 - couponDiscount) / 100 * 100) / 100
+      : parsed.amount;
+
+  const finalPriceDisplay =
+    couponDiscount > 0
+      ? parsed.currency === "EUR"
+        ? `€${finalAmount.toFixed(2)}`
+        : `${finalAmount % 1 === 0 ? finalAmount.toLocaleString("cs-CZ") : finalAmount.toFixed(2).replace(".", ",")} Kč`
+      : priceText;
+
   const qrUrl =
     hasFixedPrice
-      ? createTransferQrUrl(iban, parsed.amount, parsed.currency, `YK-Online ${productName}`)
+      ? createTransferQrUrl(iban, finalAmount, parsed.currency, `YK-Online ${productName}`)
       : "";
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponStatus("checking");
+    try {
+      const res = await fetch(`/api/validate-coupon?code=${encodeURIComponent(code)}`);
+      const data = (await res.json()) as { valid: boolean; discount?: number };
+      if (data.valid && typeof data.discount === "number") {
+        setCouponApplied(code.toUpperCase());
+        setCouponDiscount(data.discount);
+        setCouponStatus("valid");
+      } else {
+        setCouponApplied("");
+        setCouponDiscount(0);
+        setCouponStatus("invalid");
+      }
+    } catch {
+      setCouponStatus("invalid");
+    }
+  };
 
   const validateStep = (current: 1 | 2 | 3): boolean => {
     const next: Record<string, string> = {};
@@ -350,9 +393,10 @@ function InquiryModal() {
         },
         body: JSON.stringify({
           productName,
-          amount: parsed.amount,
+          amount: finalAmount,
           currency: parsed.currency,
           lang,
+          couponCode: couponApplied || undefined,
           customerName: name.trim(),
           customerEmail: email.trim(),
           customerPhone: phone.trim(),
@@ -414,7 +458,7 @@ function InquiryModal() {
             {lang === "cs" ? "Digitální produkt • doručení ihned po zaplacení" : "Digital product • delivered instantly after payment"}
           </span>
         </div>
-        <span className="inquiry__product-price">{priceText || (lang === "cs" ? "Na dotaz" : "On request")}</span>
+        <span className="inquiry__product-price">{finalPriceDisplay || (lang === "cs" ? "Na dotaz" : "On request")}</span>
       </div>
 
       {!hasFixedPrice ? (
@@ -446,7 +490,7 @@ function InquiryModal() {
             </div>
             <div className="checkout-summary__row">
               <span>{lang === "cs" ? "Částka" : "Amount"}</span>
-              <strong>{priceText}</strong>
+              <strong>{finalPriceDisplay}</strong>
             </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -552,17 +596,77 @@ function InquiryModal() {
                   <strong>{productName}</strong>
                 </div>
                 <div className="checkout-summary__row">
-                  <span>{lang === "cs" ? "Cena" : "Price"}</span>
+                  <span>{lang === "cs" ? (couponDiscount > 0 ? "Původní cena" : "Cena") : (couponDiscount > 0 ? "Original price" : "Price")}</span>
                   <strong>{priceText}</strong>
                 </div>
+                {couponDiscount > 0 && (
+                  <div className="checkout-summary__row checkout-summary__discount">
+                    <span>{lang === "cs" ? `Sleva (${couponDiscount} %)` : `Discount (${couponDiscount}%)`}</span>
+                    <strong>
+                      {parsed.currency === "EUR"
+                        ? `-€${(parsed.amount - finalAmount).toFixed(2)}`
+                        : `-${Math.round(parsed.amount - finalAmount).toLocaleString("cs-CZ")} Kč`}
+                    </strong>
+                  </div>
+                )}
                 <div className="checkout-summary__row">
                   <span>{lang === "cs" ? "Doručení" : "Delivery"}</span>
                   <strong>{lang === "cs" ? "Ihned e-mailem" : "Instant via e-mail"}</strong>
                 </div>
                 <div className="checkout-summary__row checkout-summary__total">
                   <span>{lang === "cs" ? "Celkem" : "Total"}</span>
-                  <strong>{priceText}</strong>
+                  <strong>{finalPriceDisplay}</strong>
                 </div>
+              </div>
+
+              {/* Coupon code */}
+              <div className="checkout-coupon">
+                <label className="checkout-coupon__label">
+                  {lang === "cs" ? "Slevový kód" : "Discount code"}
+                </label>
+                <div className="checkout-coupon__row">
+                  <input
+                    type="text"
+                    className="checkout-coupon__input"
+                    placeholder={lang === "cs" ? "Zadejte kód" : "Enter code"}
+                    value={couponInput}
+                    onChange={(e) => { setCouponInput(e.target.value); if (couponStatus !== "idle") setCouponStatus("idle"); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApplyCoupon(); } }}
+                    disabled={couponStatus === "valid"}
+                  />
+                  {couponStatus === "valid" ? (
+                    <button
+                      type="button"
+                      className="btn btn--outline btn--sm"
+                      onClick={() => { setCouponInput(""); setCouponApplied(""); setCouponDiscount(0); setCouponStatus("idle"); }}
+                    >
+                      {lang === "cs" ? "Zrušit" : "Remove"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn--outline btn--sm"
+                      disabled={!couponInput.trim() || couponStatus === "checking"}
+                      onClick={handleApplyCoupon}
+                    >
+                      {couponStatus === "checking"
+                        ? (lang === "cs" ? "Ověřuji…" : "Checking…")
+                        : (lang === "cs" ? "Použít" : "Apply")}
+                    </button>
+                  )}
+                </div>
+                {couponStatus === "valid" && (
+                  <p className="checkout-coupon__ok">
+                    {lang === "cs"
+                      ? `✓ Kód ${couponApplied} – sleva ${couponDiscount} %`
+                      : `✓ Code ${couponApplied} – ${couponDiscount}% off`}
+                  </p>
+                )}
+                {couponStatus === "invalid" && (
+                  <p className="checkout-coupon__err">
+                    {lang === "cs" ? "Neplatný slevový kód." : "Invalid discount code."}
+                  </p>
+                )}
               </div>
 
               <div className="checkout-payment">
