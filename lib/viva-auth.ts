@@ -6,8 +6,8 @@ const LIVE_ACCOUNTS = "https://accounts.vivapayments.com";
 const DEMO_ACCOUNTS = "https://demo-accounts.vivapayments.com";
 
 // REST API host (orders, transactions).
-const LIVE_API = "https://api.vivapayments.com";
-const DEMO_API = "https://demo-api.vivapayments.com";
+const LIVE_API = "https://www.vivapayments.com/api";
+const DEMO_API = "https://demo.vivapayments.com/api";
 
 // Hosted checkout host (smart checkout redirect).
 const LIVE_CHECKOUT = "https://www.vivapayments.com";

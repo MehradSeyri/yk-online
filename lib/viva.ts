@@ -137,6 +137,14 @@ export function currencyToIsoNumeric(currency: string): number {
 export const VIVA_EVENT_PAYMENT_CREATED = 1796;
 export const VIVA_STATUS_FINISHED = "F";
 
+function getVivaApiBasicAuthHeader(): string {
+  const env = getEnv();
+  const encoded = Buffer.from(
+    `${env.VIVA_MERCHANT_ID}:${env.VIVA_API_KEY}`
+  ).toString("base64");
+  return `Basic ${encoded}`;
+}
+
 export function vivaIsPaid(
   eventTypeId: number | null | undefined,
   statusId: string | null | undefined
@@ -149,7 +157,7 @@ export function vivaIsPaid(
 
 /**
  * Retrieve transactions for a Viva order (reconcile path).
- * GET /checkout/v2/orders/{orderCode} — returns the order with a StateId.
+ * GET /orders/{orderCode} — returns the order with a StateId.
  * Best-effort state mapping based on Viva order state IDs.
  */
 export async function vivaGetOrderStatus(orderCode: string): Promise<{
@@ -159,22 +167,75 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
   currency?: string;
   raw: unknown;
 }> {
-  const token = await getVivaAccessToken();
-  const res = await fetch(
-    `${vivaApiUrl()}/checkout/v2/orders/${encodeURIComponent(orderCode)}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
+  const env = getEnv();
+
+  // Prefer merchant Basic-auth (MerchantID:APIKey) for order lookups if available.
+  if (env.VIVA_MERCHANT_ID && env.VIVA_API_KEY) {
+    try {
+      const isLive = env.isVivaLive;
+      const merchantApiBase = isLive
+        ? "https://www.vivapayments.com"
+        : "https://demo.vivapayments.com";
+      const basic = Buffer.from(`${env.VIVA_MERCHANT_ID}:${env.VIVA_API_KEY}`).toString("base64");
+      log.info("viva.retrieve_order.call_merchant_api", { orderCode });
+      const res = await fetch(`${merchantApiBase}/api/orders/${encodeURIComponent(orderCode)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Basic ${basic}`,
+          Accept: "application/json",
+        },
+      });
+      const text = await res.text();
+      if (!res.ok) {
+        log.warn("viva.retrieve_order.failed", {
+          orderCode,
+          statusCode: res.status,
+          body: text.slice(0, 1000),
+          auth: "merchant_basic",
+        });
+        return { status: "pending", raw: text.slice(0, 1000) };
+      }
+      try {
+        const parsed = JSON.parse(text) as Record<string, unknown>;
+        const stateId = Number(parsed.StateId ?? parsed.stateId ?? -1);
+        let status: FinalStatus = "pending";
+        if (stateId === 3) status = "paid";
+        else if (stateId === 1 || stateId === 2) status = "failed";
+        const currencyNumeric = parsed.CurrencyCode !== undefined ? String(parsed.CurrencyCode) : "";
+        const currency = NUMERIC_TO_ALPHA[currencyNumeric] || undefined;
+        return {
+          status,
+          transactionId: (parsed.TransactionId as string) || (parsed.transactionId as string) || undefined,
+          amountMinor: parsed.Amount !== undefined ? Math.round(Number(parsed.Amount) * 100) : undefined,
+          currency,
+          raw: parsed,
+        };
+      } catch (err) {
+        log.warn("viva.retrieve_order.parse_failed", { orderCode, err: String(err) });
+        return { status: "pending", raw: text.slice(0, 1000) };
+      }
+    } catch (err) {
+      log.warn("viva.retrieve_order.error", { orderCode, err: String(err) });
+      return { status: "pending", raw: String(err) };
     }
-  );
+  }
+
+  // Fallback: OAuth2 access token (Smart Checkout client) path.
+  const token = await getVivaAccessToken();
+  const res = await fetch(`${vivaApiUrl()}/orders/${encodeURIComponent(orderCode)}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  });
   const text = await res.text();
   if (!res.ok) {
     log.warn("viva.retrieve_order.failed", {
       orderCode,
       statusCode: res.status,
+      body: text.slice(0, 500),
+      auth: "oauth",
     });
     return { status: "pending", raw: text.slice(0, 500) };
   }

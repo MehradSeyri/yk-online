@@ -91,6 +91,8 @@ server-side — none are `NEXT_PUBLIC_*`, nothing reaches the browser.
 | `VIVA_CLIENT_SECRET` | from Viva | **yes** | |
 | `VIVA_SOURCE_CODE` | payment source code | no | Viva → Sources |
 | `VIVA_WEBHOOK_KEY` | from Viva webhook verification | **yes** | Returned on `GET /api/viva-webhook` |
+| `VIVA_MERCHANT_ID` | from Viva | no | Merchant ID from Viva API Access |
+| `VIVA_API_KEY` | from Viva | **yes** | API Key from Viva API Access |
 | `DATABASE_URL` | `postgres://...pooler...:6543/postgres?pgbouncer=true&connection_limit=1` | **yes** | App runtime; Supabase transaction pooler (Section 1) |
 | `DIRECT_URL` | `postgres://...pooler...:5432/postgres` | **yes** | Migrations; Supabase session pooler (Section 1) |
 | `CRON_SECRET` | long random string | **yes** | Vercel Cron sends it as `Authorization: Bearer` |

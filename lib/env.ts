@@ -87,6 +87,14 @@ function buildEnv() {
   const VIVA_WEBHOOK_KEY = providerInUse("viva")
     ? required("VIVA_WEBHOOK_KEY")
     : optional("VIVA_WEBHOOK_KEY", "");
+  // Legacy merchant API credentials (Basic auth) - optional but recommended
+  // for order status lookups: Merchant ID + API Key.
+  const VIVA_MERCHANT_ID = providerInUse("viva")
+    ? required("VIVA_MERCHANT_ID")
+    : optional("VIVA_MERCHANT_ID", "");
+  const VIVA_API_KEY = providerInUse("viva")
+    ? required("VIVA_API_KEY")
+    : optional("VIVA_API_KEY", "");
 
   const DATABASE_URL = required("DATABASE_URL");
   const CRON_SECRET = optional("CRON_SECRET", "");
@@ -115,6 +123,8 @@ function buildEnv() {
     VIVA_CLIENT_SECRET,
     VIVA_SOURCE_CODE,
     VIVA_WEBHOOK_KEY,
+    VIVA_MERCHANT_ID,
+    VIVA_API_KEY,
     DATABASE_URL,
     CRON_SECRET,
     isGpLive: GP_ENV.toLowerCase() === "live",
