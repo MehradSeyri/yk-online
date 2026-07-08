@@ -63,7 +63,10 @@ export async function vivaCreatePayment(
     currency: input.currency,
   });
 
-  const res = await fetch(`${vivaApiUrl()}/checkout/v2/orders`, {
+  const createBase = getEnv().isVivaLive
+    ? "https://www.vivapayments.com"
+    : "https://demo.vivapayments.com";
+  const res = await fetch(`${createBase}/checkout/v2/orders`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
