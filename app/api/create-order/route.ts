@@ -5,6 +5,7 @@ import { createPayment } from "@/lib/providers";
 import { recordMetric } from "@/lib/webhook-core";
 import { toMinorUnits } from "@/lib/gp";
 import { normalizeLang } from "@/lib/lang";
+import { numericToAlpha } from "@/lib/currency";
 import type { CreatePaymentInput } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -35,9 +36,12 @@ export async function POST(req: NextRequest) {
   const amount = typeof body.amount === "number" ? body.amount : NaN;
   const currency =
     typeof body.currency === "string" ? body.currency.trim().toUpperCase() : "";
+  const rawCurrencyCode = (body as any).currencyCode;
   const currencyCode =
-    typeof (body as any).currencyCode === "number"
-      ? (body as any).currencyCode
+    typeof rawCurrencyCode === "number"
+      ? rawCurrencyCode
+      : typeof rawCurrencyCode === "string" && /^[0-9]+$/.test(rawCurrencyCode)
+      ? Number(rawCurrencyCode)
       : undefined;
   const requestLang =
     typeof (body as any).requestLang === "string"
@@ -47,19 +51,20 @@ export async function POST(req: NextRequest) {
   if (!orderId) return bad("orderId is required");
   if (!Number.isFinite(amount) || amount <= 0)
     return bad("amount must be a positive number");
-  if (!currency || currency.length !== 3)
+  if (currency && currency.length !== 3)
     return bad("currency must be ISO alpha-3");
+  if (rawCurrencyCode !== undefined && currencyCode === undefined)
+    return bad("currencyCode must be a positive integer");
 
-  // Validate numeric currency code if provided.
-  if (currencyCode !== undefined) {
-    if (!Number.isInteger(currencyCode) || currencyCode <= 0)
-      return bad("currencyCode must be a positive integer");
-  }
+  const effectiveCurrency =
+    currency || numericToAlpha(currencyCode) || "";
+  if (!effectiveCurrency || effectiveCurrency.length !== 3)
+    return bad("currency must be a valid ISO alpha-3 or numeric currencyCode");
 
   const input: CreatePaymentInput = {
     orderId,
     amount,
-    currency,
+    currency: effectiveCurrency,
     currencyCode,
     requestLang,
     countryCode: body.countryCode,

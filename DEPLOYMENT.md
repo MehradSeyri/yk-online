@@ -201,7 +201,7 @@ Other Viva URLs:
 API contract notes (create-order):
 
 - The internal `POST /api/create-order` endpoint accepts two optional, frontend-supplied fields to improve provider routing:
-  - `currencyCode` — ISO 4217 numeric currency (e.g. `978` for EUR). When present the service will prefer this numeric code for Viva (Viva expects numeric codes).
+  - `currencyCode` — ISO 4217 numeric currency (e.g. `978` for EUR). When present the service prefers this numeric code for Viva and also derives `currency` if alpha-3 is absent.
   - `requestLang` — explicit locale hint (e.g. `cs`, `cs-CZ`, `en`). When present it overrides `lang` for provider `requestLang`/locale selection.
 
 If `currencyCode` is not provided, the `currency` alpha-3 (e.g. `CZK`) is used and mapped as needed per-provider.
