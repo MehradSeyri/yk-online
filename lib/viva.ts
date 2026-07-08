@@ -35,8 +35,8 @@ export async function vivaCreatePayment(
       fullName: input.customerName || undefined,
       phone: input.customerPhone || undefined,
       countryCode: input.countryCode || undefined,
+      requestLang,
     },
-    requestLang,
     paymentTimeout: 1800,
     preauth: false,
     allowRecurring: false,
@@ -63,15 +63,15 @@ export async function vivaCreatePayment(
     currency: input.currency,
   });
 
-  const createBase = getEnv().isVivaLive
-    ? "https://www.vivapayments.com"
-    : "https://demo.vivapayments.com";
+  const createBase = env.isVivaLive
+    ? "https://api.vivapayments.com"
+    : "https://demo-api.vivapayments.com";
   const res = await fetch(`${createBase}/checkout/v2/orders`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      Accept: "*/*",
+      Accept: "application/json",
     },
     body: JSON.stringify(payload),
   });
@@ -90,7 +90,15 @@ export async function vivaCreatePayment(
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error("Viva create order: invalid JSON response");
+    log.error("viva.create_order.invalid_response", {
+      orderId: input.orderId,
+      statusCode: res.status,
+      contentType: res.headers.get("content-type"),
+      body: text.slice(0, 800),
+    });
+    throw new Error(
+      `Viva create order: invalid JSON response (HTTP ${res.status})`
+    );
   }
 
   if (parsed.orderCode === undefined || parsed.orderCode === null) {
@@ -191,10 +199,14 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
         else if (stateId === 1 || stateId === 2) status = "failed";
         const currencyNumeric = parsed.CurrencyCode !== undefined ? String(parsed.CurrencyCode) : "";
         const currency = numericToAlpha(currencyNumeric) || undefined;
+        const requestAmount = parsed.RequestAmount ?? parsed.Amount;
         return {
           status,
           transactionId: (parsed.TransactionId as string) || (parsed.transactionId as string) || undefined,
-          amountMinor: parsed.Amount !== undefined ? Math.round(Number(parsed.Amount) * 100) : undefined,
+          amountMinor:
+            requestAmount !== undefined
+              ? Math.round(Number(requestAmount) * 100)
+              : undefined,
           currency,
           raw: parsed,
         };
@@ -244,6 +256,7 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
     parsed.CurrencyCode !== undefined ? String(parsed.CurrencyCode) : "";
   const currency = numericToAlpha(currencyNumeric) || undefined;
 
+  const requestAmount = parsed.RequestAmount ?? parsed.Amount;
   return {
     status,
     transactionId:
@@ -251,8 +264,8 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
       (parsed.transactionId as string) ||
       undefined,
     amountMinor:
-      parsed.Amount !== undefined
-        ? Math.round(Number(parsed.Amount) * 100)
+      requestAmount !== undefined
+        ? Math.round(Number(requestAmount) * 100)
         : undefined,
     currency,
     raw: parsed,
