@@ -198,6 +198,14 @@ Other Viva URLs:
 - success URL: `https://yk-online.eu/web2/success`
 - failure URL: `https://yk-online.eu/web2/fail`
 
+API contract notes (create-order):
+
+- The internal `POST /api/create-order` endpoint accepts two optional, frontend-supplied fields to improve provider routing:
+  - `currencyCode` — ISO 4217 numeric currency (e.g. `978` for EUR). When present the service will prefer this numeric code for Viva (Viva expects numeric codes).
+  - `requestLang` — explicit locale hint (e.g. `cs`, `cs-CZ`, `en`). When present it overrides `lang` for provider `requestLang`/locale selection.
+
+If `currencyCode` is not provided, the `currency` alpha-3 (e.g. `CZK`) is used and mapped as needed per-provider.
+
 ---
 
 ## 7. Post-deploy smoke test

@@ -35,6 +35,14 @@ export async function POST(req: NextRequest) {
   const amount = typeof body.amount === "number" ? body.amount : NaN;
   const currency =
     typeof body.currency === "string" ? body.currency.trim().toUpperCase() : "";
+  const currencyCode =
+    typeof (body as any).currencyCode === "number"
+      ? (body as any).currencyCode
+      : undefined;
+  const requestLang =
+    typeof (body as any).requestLang === "string"
+      ? (body as any).requestLang.trim()
+      : undefined;
 
   if (!orderId) return bad("orderId is required");
   if (!Number.isFinite(amount) || amount <= 0)
@@ -42,10 +50,18 @@ export async function POST(req: NextRequest) {
   if (!currency || currency.length !== 3)
     return bad("currency must be ISO alpha-3");
 
+  // Validate numeric currency code if provided.
+  if (currencyCode !== undefined) {
+    if (!Number.isInteger(currencyCode) || currencyCode <= 0)
+      return bad("currencyCode must be a positive integer");
+  }
+
   const input: CreatePaymentInput = {
     orderId,
     amount,
     currency,
+    currencyCode,
+    requestLang,
     countryCode: body.countryCode,
     lang: body.lang,
     customerTrns: body.customerTrns,
@@ -73,7 +89,7 @@ export async function POST(req: NextRequest) {
       amountCents: toMinorUnits(amount),
       currency,
       countryCode: input.countryCode ?? null,
-      lang: normalizeLang(input.lang),
+      lang: normalizeLang(input.requestLang ?? input.lang),
     });
 
     log.info("create-order.success", {

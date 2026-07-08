@@ -22,6 +22,14 @@ const LOCALE_MAP: Record<string, string> = {
   "ro-ro": "ro-RO",
   el: "el-GR",
   "el-gr": "el-GR",
+  fr: "fr-FR",
+  "fr-fr": "fr-FR",
+  it: "it-IT",
+  "it-it": "it-IT",
+  es: "es-ES",
+  "es-es": "es-ES",
+  nl: "nl-NL",
+  "nl-nl": "nl-NL",
 };
 
 export const DEFAULT_LOCALE = "en-GB";

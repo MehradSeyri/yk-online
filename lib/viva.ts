@@ -7,6 +7,7 @@ import {
   vivaCheckoutUrl,
 } from "./viva-auth";
 import { toMinorUnits } from "./gp";
+import { alphaToNumeric, numericToAlpha } from "./currency";
 import type {
   CreatePaymentInput,
   CreatePaymentResult,
@@ -24,7 +25,7 @@ export async function vivaCreatePayment(
   const token = await getVivaAccessToken();
 
   const amountMinor = toMinorUnits(input.amount);
-  const requestLang = normalizeLang(input.lang);
+  const requestLang = normalizeLang(input.requestLang ?? input.lang);
 
   const body: Record<string, unknown> = {
     amount: amountMinor,
@@ -46,7 +47,12 @@ export async function vivaCreatePayment(
     disableWallet: false,
     sourceCode: env.VIVA_SOURCE_CODE,
     merchantTrns: input.orderId,
-    currencyCode: currencyToIsoNumeric(input.currency),
+    // Allow explicit numeric currency code from the frontend (preferred
+    // for Viva) and otherwise derive from alpha-3 currency string.
+    currencyCode:
+      input.currencyCode !== undefined
+        ? input.currencyCode
+        : alphaToNumeric(input.currency) ?? 978,
   };
 
   const payload = JSON.parse(JSON.stringify(body));
@@ -106,29 +112,8 @@ export async function vivaCreatePayment(
  * Defaults to EUR (978) if unknown.
  */
 /** Reverse of currencyToIsoNumeric: Viva ISO-numeric -> alpha-3. */
-const NUMERIC_TO_ALPHA: Record<string, string> = {
-  "978": "EUR",
-  "203": "CZK",
-  "840": "USD",
-  "826": "GBP",
-  "985": "PLN",
-  "348": "HUF",
-  "946": "RON",
-  "975": "BGN",
-};
-
 export function currencyToIsoNumeric(currency: string): number {
-  const map: Record<string, number> = {
-    EUR: 978,
-    CZK: 203,
-    USD: 840,
-    GBP: 826,
-    PLN: 985,
-    HUF: 348,
-    RON: 946,
-    BGN: 975,
-  };
-  return map[currency.toUpperCase()] ?? 978;
+  return alphaToNumeric(currency) ?? 978;
 }
 
 // --- Viva webhook event semantics ---------------------------------------
@@ -202,7 +187,7 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
         if (stateId === 3) status = "paid";
         else if (stateId === 1 || stateId === 2) status = "failed";
         const currencyNumeric = parsed.CurrencyCode !== undefined ? String(parsed.CurrencyCode) : "";
-        const currency = NUMERIC_TO_ALPHA[currencyNumeric] || undefined;
+        const currency = numericToAlpha(currencyNumeric) || undefined;
         return {
           status,
           transactionId: (parsed.TransactionId as string) || (parsed.transactionId as string) || undefined,
@@ -254,7 +239,7 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
 
   const currencyNumeric =
     parsed.CurrencyCode !== undefined ? String(parsed.CurrencyCode) : "";
-  const currency = NUMERIC_TO_ALPHA[currencyNumeric] || undefined;
+  const currency = numericToAlpha(currencyNumeric) || undefined;
 
   return {
     status,

@@ -9,6 +9,10 @@ export interface CreatePaymentInput {
   amount: number;
   /** ISO alpha-3 currency, e.g. EUR / CZK. */
   currency: string;
+  /** Optional ISO 4217 numeric currency code (e.g. 978 for EUR). Preferred for Viva. */
+  currencyCode?: number;
+  /** Optional explicit request language/locale (e.g. cs, cs-CZ, en). */
+  requestLang?: string;
   countryCode?: string;
   lang?: string;
   customerTrns?: string;

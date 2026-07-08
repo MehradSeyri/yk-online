@@ -2,6 +2,7 @@ import { getEnv } from "./env";
 import { log } from "./logger";
 import { gpAuthHeaders, gpBaseUrl } from "./gp-auth";
 import type { CreatePaymentInput, CreatePaymentResult, FinalStatus } from "./types";
+import { numericToAlpha } from "./currency";
 
 /** Convert major-unit amount (e.g. 12.34) to minor units (1234). */
 export function toMinorUnits(amount: number): number {
@@ -19,7 +20,9 @@ export async function gpCreatePayment(
   const headers = await gpAuthHeaders();
 
   const amountMinor = toMinorUnits(input.amount);
-  const currency = input.currency.toUpperCase();
+  // Prefer alpha-3 currency provided directly; if numeric `currencyCode` is
+  // supplied, map it to alpha-3 for GlobalPayments.
+  const currency = (input.currency || numericToAlpha(input.currencyCode) || "").toUpperCase();
 
   const body: Record<string, unknown> = {
     account_name: env.GP_ACCOUNT_NAME || undefined,
