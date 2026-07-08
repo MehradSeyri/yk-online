@@ -31,36 +31,55 @@ export async function createPayment(
   const primary = env.PAYMENT_PROVIDER_PRIMARY;
   const fallback = env.PAYMENT_PROVIDER_FALLBACK;
 
+  const effectivePrimary = primary === "globalpayments" ? fallback : primary;
+  const effectiveFallback = fallback === "globalpayments" ? null : fallback;
+
+  if (!effectivePrimary) {
+    throw new Error(
+      "GlobalPayments is currently disabled. Set PAYMENT_PROVIDER_PRIMARY to 'viva' or 'comgate' and remove 'globalpayments' from fallback."
+    );
+  }
+
   try {
-    const result = await createWith(primary, input);
+    const result = await createWith(effectivePrimary, input);
     log.info("provider.primary_ok", {
       orderId: input.orderId,
-      provider: primary,
+      provider: effectivePrimary,
+      originalPrimary: primary,
     });
+    if (primary === "globalpayments") {
+      log.warn("provider.globalpayments_disabled", {
+        orderId: input.orderId,
+        skippedPrimary: primary,
+        used: effectivePrimary,
+      });
+    }
     return result;
   } catch (primaryErr) {
     const reason =
       primaryErr instanceof Error ? primaryErr.message : String(primaryErr);
     log.warn("provider.primary_failed", {
       orderId: input.orderId,
-      provider: primary,
+      provider: effectivePrimary,
+      originalPrimary: primary,
       reason,
     });
 
-    if (!fallback || fallback === primary) {
+    if (!effectiveFallback || effectiveFallback === effectivePrimary) {
       log.error("provider.no_fallback", {
         orderId: input.orderId,
-        provider: primary,
+        provider: effectivePrimary,
       });
       throw primaryErr;
     }
 
     try {
-      const result = await createWith(fallback, input);
+      const result = await createWith(effectiveFallback, input);
       log.info("provider.fallback_used", {
         orderId: input.orderId,
-        from: primary,
-        to: fallback,
+        from: effectivePrimary,
+        to: effectiveFallback,
+        originalPrimary: primary,
         primaryReason: reason,
       });
       return result;
@@ -71,8 +90,9 @@ export async function createPayment(
           : String(fallbackErr);
       log.error("provider.fallback_failed", {
         orderId: input.orderId,
-        from: primary,
-        to: fallback,
+        from: effectivePrimary,
+        to: effectiveFallback,
+        originalPrimary: primary,
         primaryReason: reason,
         fallbackReason: fbReason,
       });

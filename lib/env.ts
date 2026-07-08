@@ -47,9 +47,10 @@ function buildEnv() {
     : null;
 
   const providerInUse = (provider: Provider) =>
-    PAYMENT_PROVIDER_PRIMARY === provider || PAYMENT_PROVIDER_FALLBACK === provider;
+    provider !== "globalpayments" &&
+    (PAYMENT_PROVIDER_PRIMARY === provider || PAYMENT_PROVIDER_FALLBACK === provider);
 
-  // GlobalPayments
+  // GlobalPayments is temporarily disabled in code. Do not require GP credentials.
   const GP_ENV = optional("GP_ENV", "live");
   const GP_APP_ID = providerInUse("globalpayments")
     ? required("GP_APP_ID")

@@ -35,8 +35,8 @@ export async function vivaCreatePayment(
       fullName: input.customerName || undefined,
       phone: input.customerPhone || undefined,
       countryCode: input.countryCode || undefined,
-      requestLang,
     },
+    requestLang,
     paymentTimeout: 1800,
     preauth: false,
     allowRecurring: false,
@@ -71,7 +71,7 @@ export async function vivaCreatePayment(
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      Accept: "application/json",
+      Accept: "*/*",
     },
     body: JSON.stringify(payload),
   });
