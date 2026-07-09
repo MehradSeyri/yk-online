@@ -86,6 +86,34 @@ function num(v: unknown): number | null {
   return null;
 }
 
+function safeVivaWebhookSummary(body: Record<string, unknown>) {
+  const data = (body.EventData as Record<string, unknown>) || {};
+  return {
+    eventTypeId: body.EventTypeId,
+    eventTypeName: body.EventTypeName,
+    created: body.Created,
+    correlationId: body.CorrelationId,
+    eventKeys: Object.keys(body),
+    eventDataKeys: Object.keys(data),
+    orderCode: data.OrderCode,
+    merchantTrns: data.MerchantTrns,
+    transactionId: data.TransactionId,
+    statusId: data.StatusId,
+    amount: data.Amount,
+    currencyCode: data.CurrencyCode,
+    sourceCode: data.SourceCode,
+    emailPresent: typeof data.Email === "string" && data.Email.length > 0,
+    fullNamePresent:
+      typeof data.FullName === "string" && data.FullName.length > 0,
+    errorCode: data.ErrorCode ?? data.ErrorId ?? data.ResponseCode,
+    errorText:
+      data.ErrorText ??
+      data.ErrorMessage ??
+      data.ResponseMessage ??
+      data.StatusDescription,
+  };
+}
+
 /** GET: Viva webhook verification handshake.
  *
  * Priority:
@@ -207,6 +235,7 @@ export async function POST(req: NextRequest) {
     transactionId,
     eventTypeId,
     statusId,
+    summary: safeVivaWebhookSummary(body),
   });
 
   // Idempotency: TransactionId : EventTypeId : StatusId.
@@ -307,10 +336,25 @@ export async function POST(req: NextRequest) {
   }
 
   if (!fresh) {
+    log.info("viva-webhook.duplicate_non_paid", {
+      orderId,
+      orderCode,
+      transactionId,
+      eventTypeId,
+      statusId,
+    });
     return NextResponse.json({ ok: true, duplicate: true });
   }
 
   // Any non-paid event: record metric, do not forward paid.
+  log.info("viva-webhook.non_paid_event", {
+    orderId,
+    orderCode,
+    transactionId,
+    eventTypeId,
+    statusId,
+    summary: safeVivaWebhookSummary(body),
+  });
   await recordMetric({
     provider: "viva",
     orderId,

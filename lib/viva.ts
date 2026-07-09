@@ -14,6 +14,32 @@ import type {
   FinalStatus,
 } from "./types";
 
+function vivaStateName(stateId: number): string {
+  if (stateId === 0) return "pending";
+  if (stateId === 1) return "expired";
+  if (stateId === 2) return "canceled";
+  if (stateId === 3) return "paid";
+  return "unknown";
+}
+
+function summarizeVivaOrder(parsed: Record<string, unknown>) {
+  return {
+    orderCode: parsed.OrderCode ?? parsed.orderCode,
+    merchantTrns: parsed.MerchantTrns ?? parsed.merchantTrns,
+    customerTrns: parsed.CustomerTrns ?? parsed.customerTrns,
+    stateId: parsed.StateId ?? parsed.stateId,
+    stateName: vivaStateName(Number(parsed.StateId ?? parsed.stateId ?? -1)),
+    requestAmount: parsed.RequestAmount ?? parsed.Amount ?? parsed.amount,
+    requestLang: parsed.RequestLang ?? parsed.requestLang,
+    sourceCode: parsed.SourceCode ?? parsed.sourceCode,
+    currencyCode: parsed.CurrencyCode ?? parsed.currencyCode,
+    expirationDate: parsed.ExpirationDate ?? parsed.expirationDate,
+    maxInstallments: parsed.MaxInstallments ?? parsed.maxInstallments,
+    transactionId: parsed.TransactionId ?? parsed.transactionId,
+    responseKeys: Object.keys(parsed),
+  };
+}
+
 /**
  * Create a Viva smart-checkout order.
  * Endpoint: POST /checkout/v2/orders. merchantTrns = orderId.
@@ -62,6 +88,25 @@ export async function vivaCreatePayment(
     amount: amountMinor,
     currency: input.currency,
   });
+  log.info("viva.create_order.payload", {
+    orderId: input.orderId,
+    amount: payload.amount,
+    currency: input.currency,
+    currencyCode: payload.currencyCode,
+    countryCode: (payload.customer as Record<string, unknown> | undefined)
+      ?.countryCode,
+    requestLang: (payload.customer as Record<string, unknown> | undefined)
+      ?.requestLang,
+    sourceCode: payload.sourceCode,
+    merchantTrns: payload.merchantTrns,
+    customerTrns: payload.customerTrns,
+    paymentTimeout: payload.paymentTimeout,
+    paymentNotification: payload.paymentNotification,
+    disableExactAmount: payload.disableExactAmount,
+    disableCash: payload.disableCash,
+    disableWallet: payload.disableWallet,
+    preauth: payload.preauth,
+  });
 
   const createBase = env.isVivaLive
     ? "https://api.vivapayments.com"
@@ -109,6 +154,8 @@ export async function vivaCreatePayment(
   log.info("viva.create_order.success", {
     orderId: input.orderId,
     orderCode,
+    response: parsed,
+    checkoutUrlHost: new URL(vivaCheckoutUrl(orderCode)).host,
   });
 
   return {
@@ -202,13 +249,11 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
         const requestAmount = parsed.RequestAmount ?? parsed.Amount;
         log.info("viva.retrieve_order.result", {
           orderCode,
-          merchantTrns: parsed.MerchantTrns,
           stateId,
+          stateName: vivaStateName(stateId),
           status,
-          requestAmount,
-          requestLang: parsed.RequestLang,
-          sourceCode: parsed.SourceCode,
-          currencyCode: parsed.CurrencyCode,
+          auth: "merchant_basic",
+          order: summarizeVivaOrder(parsed),
         });
         return {
           status,
@@ -269,13 +314,11 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
   const requestAmount = parsed.RequestAmount ?? parsed.Amount;
   log.info("viva.retrieve_order.result", {
     orderCode,
-    merchantTrns: parsed.MerchantTrns,
     stateId,
+    stateName: vivaStateName(stateId),
     status,
-    requestAmount,
-    requestLang: parsed.RequestLang,
-    sourceCode: parsed.SourceCode,
-    currencyCode: parsed.CurrencyCode,
+    auth: "oauth",
+    order: summarizeVivaOrder(parsed),
   });
   return {
     status,
