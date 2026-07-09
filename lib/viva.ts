@@ -200,6 +200,16 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
         const currencyNumeric = parsed.CurrencyCode !== undefined ? String(parsed.CurrencyCode) : "";
         const currency = numericToAlpha(currencyNumeric) || undefined;
         const requestAmount = parsed.RequestAmount ?? parsed.Amount;
+        log.info("viva.retrieve_order.result", {
+          orderCode,
+          merchantTrns: parsed.MerchantTrns,
+          stateId,
+          status,
+          requestAmount,
+          requestLang: parsed.RequestLang,
+          sourceCode: parsed.SourceCode,
+          currencyCode: parsed.CurrencyCode,
+        });
         return {
           status,
           transactionId: (parsed.TransactionId as string) || (parsed.transactionId as string) || undefined,
@@ -257,6 +267,16 @@ export async function vivaGetOrderStatus(orderCode: string): Promise<{
   const currency = numericToAlpha(currencyNumeric) || undefined;
 
   const requestAmount = parsed.RequestAmount ?? parsed.Amount;
+  log.info("viva.retrieve_order.result", {
+    orderCode,
+    merchantTrns: parsed.MerchantTrns,
+    stateId,
+    status,
+    requestAmount,
+    requestLang: parsed.RequestLang,
+    sourceCode: parsed.SourceCode,
+    currencyCode: parsed.CurrencyCode,
+  });
   return {
     status,
     transactionId:
