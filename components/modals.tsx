@@ -234,7 +234,7 @@ function createTransferQrUrl(
 function InquiryModal() {
   const { lang, inquiry, userName, userEmail, addOrder, closeModals } = useSite();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [method, setMethod] = useState<"bank" | "card">("bank");
+  const [method, setMethod] = useState<"" | "bank" | "card">("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -255,7 +255,7 @@ function InquiryModal() {
   // Reset transient UI each time a new checkout opens.
   useEffect(() => {
     setStep(1);
-    setMethod("bank");
+    setMethod("");
     setName(userName || "");
     setEmail(userEmail || "");
     setPhone("");
@@ -342,6 +342,12 @@ function InquiryModal() {
         lang === "cs"
           ? "Pro pokračování potvrďte souhlas s podmínkami."
           : "Please accept terms to continue.";
+    }
+    if (current === 3 && !method) {
+      next.payment =
+        lang === "cs"
+          ? "Vyberte platebni metodu."
+          : "Please choose a payment method.";
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -697,7 +703,11 @@ function InquiryModal() {
                   <span>{lang === "cs" ? "Online platba kartou" : "Online card payment"}</span>
                 </label>
                 <p className="checkout-payment__hint">
-                  {method === "bank"
+                  {!method
+                    ? lang === "cs"
+                      ? "Vyberte, zda chcete zaplatit online kartou, nebo bankovnim prevodem pres QR kod."
+                      : "Choose whether to pay online by card or by bank transfer using a QR code."
+                    : method === "bank"
                     ? lang === "cs"
                       ? "Po potvrzení objednávky se zobrazí QR kód a platební údaje pro okamžitý převod."
                       : "After order confirmation, a QR code and transfer details will be shown."
@@ -705,6 +715,7 @@ function InquiryModal() {
                       ? "Po kliknutí budete bezpečně přesměrováni na zabezpečenou platební bránu."
                       : "After clicking, you will be securely redirected to a secure payment gateway."}
                 </p>
+                <FieldError msg={errors.payment} />
               </div>
 
               <label className="checkout-checkline">
@@ -751,7 +762,11 @@ function InquiryModal() {
               </button>
             ) : (
               <button type="submit" className="btn btn--primary" disabled={submitting}>
-                {method === "bank"
+                {!method
+                  ? lang === "cs"
+                    ? "Vyberte platebni metodu"
+                    : "Choose payment method"
+                  : method === "bank"
                   ? lang === "cs"
                     ? "Objednat a zobrazit QR kód"
                     : "Place order and show QR code"
