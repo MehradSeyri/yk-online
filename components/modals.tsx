@@ -400,6 +400,7 @@ function InquiryModal() {
           customerName: name.trim(),
           customerEmail: email.trim(),
           customerPhone: phone.trim(),
+          countryCode: country,
         }),
       });
 

@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     customerEmail?: string;
     customerName?: string;
     customerPhone?: string;
+    countryCode?: string;
   };
 
   try {
@@ -53,6 +54,8 @@ export async function POST(req: NextRequest) {
   const amount = typeof body.amount === "number" ? body.amount : NaN;
   const currency = typeof body.currency === "string" ? body.currency.trim().toUpperCase() : "";
   const couponCode = typeof body.couponCode === "string" ? body.couponCode.trim() : "";
+  const countryCode =
+    typeof body.countryCode === "string" ? body.countryCode.trim().toUpperCase() : undefined;
 
   if (!productName) return bad("productName is required");
   if (!Number.isFinite(amount) || amount <= 0) return bad("amount must be a positive number");
@@ -78,6 +81,7 @@ export async function POST(req: NextRequest) {
     amount: finalAmount,
     currency,
     lang: body.lang,
+    countryCode,
     customerTrns: productName,
     customerEmail: body.customerEmail,
     customerName: body.customerName,
