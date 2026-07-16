@@ -25,6 +25,9 @@ export function Navbar() {
           <Link href="/contact" onClick={() => setNavOpen(false)}>
             <T cs="Kontakt" en="Contact" />
           </Link>
+          <Link href="/client-portal" onClick={() => setNavOpen(false)}>
+            Portal
+          </Link>
         </nav>
         <div className="navbar__actions">
           <button
