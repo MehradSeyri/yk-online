@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useSite } from "./site-context";
 import { T } from "./t";
 
@@ -110,8 +111,59 @@ const PRODUCTS: Product[] = [
   },
 ];
 
+function parseCatalogPrice(text: string): { amount: number; currency: "CZK" | "EUR" } {
+  const currency = text.includes("€") || text.includes("â‚¬") || text.includes("EUR") ? "EUR" : "CZK";
+  const amount = Number(text.replace(/[^0-9]/g, "")) || 0;
+  return { amount, currency };
+}
+
 export function Pricing() {
-  const { lang, onPricingClick } = useSite();
+  const { lang, onPricingClick, showToast } = useSite();
+  const [payingIndex, setPayingIndex] = useState<number | null>(null);
+
+  const startOnlinePayment = async (product: Product, index: number) => {
+    if (payingIndex !== null) return;
+
+    const productName = lang === "cs" ? product.nameCs : product.nameEn;
+    const price = lang === "cs" ? product.amountCs : product.amountEn;
+    const parsed = parseCatalogPrice(price);
+
+    if (!parsed.amount) {
+      showToast(
+        lang === "cs"
+          ? "Tento produkt nema pevnou cenu pro online platbu."
+          : "This product does not have a fixed price for online payment."
+      );
+      return;
+    }
+
+    setPayingIndex(index);
+    try {
+      const res = await fetch("/api/public-checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          productName,
+          amount: parsed.amount,
+          currency: parsed.currency,
+          lang,
+        }),
+      });
+      const data = (await res.json()) as { checkoutUrl?: string; error?: string };
+      if (!res.ok || !data.checkoutUrl) {
+        throw new Error(data.error || "missing checkoutUrl");
+      }
+      window.location.assign(data.checkoutUrl);
+    } catch (err) {
+      showToast(
+        lang === "cs"
+          ? `Online platbu se nepodarilo zalozit. ${err instanceof Error ? err.message : ""}`
+          : `Online payment could not be initialized. ${err instanceof Error ? err.message : ""}`,
+        5000
+      );
+      setPayingIndex(null);
+    }
+  };
 
   return (
     <section className="pricing section" id="products">
@@ -184,6 +236,20 @@ export function Pricing() {
                 }
               >
                 {lang === "cs" ? p.btnCs : p.btnEn}
+              </button>
+              <button
+                type="button"
+                className="btn btn--outline btn--full pricing-btn"
+                disabled={payingIndex !== null}
+                onClick={() => startOnlinePayment(p, i)}
+              >
+                {payingIndex === i
+                  ? lang === "cs"
+                    ? "Pripravuji online platbu..."
+                    : "Preparing online payment..."
+                  : lang === "cs"
+                    ? "Online platba kartou"
+                    : "Pay online by card"}
               </button>
             </div>
           ))}
