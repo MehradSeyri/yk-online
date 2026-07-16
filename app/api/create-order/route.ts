@@ -6,6 +6,10 @@ import { recordMetric } from "@/lib/webhook-core";
 import { toMinorUnits } from "@/lib/gp";
 import { normalizeLang } from "@/lib/lang";
 import { numericToAlpha } from "@/lib/currency";
+import {
+  isProviderCreateError,
+  sanitizeProviderError,
+} from "@/lib/provider-error";
 import type { CreatePaymentInput } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -109,6 +113,23 @@ export async function POST(req: NextRequest) {
       providerRef: result.providerRef,
     });
   } catch (err) {
+    if (isProviderCreateError(err)) {
+      const providerError = sanitizeProviderError(err);
+      log.error("create-order.fail", {
+        orderId,
+        provider: err.provider,
+        providerError,
+      });
+      return NextResponse.json(
+        {
+          error: "Failed to create payment",
+          provider: err.provider,
+          providerError,
+        },
+        { status: 502 }
+      );
+    }
+
     log.error("create-order.fail", {
       orderId,
       error: err instanceof Error ? err.message : String(err),

@@ -8,6 +8,7 @@ import {
 } from "./viva-auth";
 import { toMinorUnits } from "./gp";
 import { alphaToNumeric, numericToAlpha } from "./currency";
+import { ProviderCreateError } from "./provider-error";
 import type {
   CreatePaymentInput,
   CreatePaymentResult,
@@ -123,12 +124,42 @@ export async function vivaCreatePayment(
 
   const text = await res.text();
   if (!res.ok) {
+    let providerStatus: number | string | undefined;
+    let providerMessage = `Viva create order failed: HTTP ${res.status}`;
+    let eventId: string | undefined;
+    try {
+      const parsed = JSON.parse(text) as Record<string, unknown>;
+      const rawStatus = parsed.status ?? parsed.Status;
+      if (typeof rawStatus === "number" || typeof rawStatus === "string") {
+        providerStatus = rawStatus;
+      }
+      const rawMessage = parsed.message ?? parsed.Message ?? parsed.error;
+      if (typeof rawMessage === "string" && rawMessage.trim()) {
+        providerMessage = rawMessage.trim();
+      }
+      const rawEventId = parsed.eventId ?? parsed.EventId;
+      if (typeof rawEventId === "number" || typeof rawEventId === "string") {
+        eventId = String(rawEventId);
+      }
+    } catch {
+      providerStatus = res.status;
+    }
+
     log.error("viva.create_order.failed", {
       orderId: input.orderId,
       statusCode: res.status,
+      providerStatus,
+      providerMessage,
+      eventId,
       body: text.slice(0, 800),
     });
-    throw new Error(`Viva create order failed: HTTP ${res.status}`);
+    throw new ProviderCreateError({
+      provider: "viva",
+      httpStatus: res.status,
+      providerStatus: providerStatus ?? res.status,
+      message: providerMessage,
+      eventId,
+    });
   }
 
   let parsed: { orderCode?: number | string };
