@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const orderCode = url.searchParams.get("s") || null;
   const transactionId = url.searchParams.get("t") || null;
+  const eventId = url.searchParams.get("eventId") || null;
   const queryParams = queryParamsForLog(url);
 
   log.info("viva.fail_redirect.received", {
@@ -50,6 +51,7 @@ export async function GET(req: NextRequest) {
       orderId,
       orderCode,
       transactionId,
+      eventId,
       queryParams,
       providerStatus: result.status,
     });
@@ -62,6 +64,7 @@ export async function GET(req: NextRequest) {
           status: "success",
           orderCode,
           transactionId: result.transactionId || transactionId,
+          eventId,
           rawPayload: result.raw,
         });
       }
@@ -80,17 +83,21 @@ export async function GET(req: NextRequest) {
       status: "failed",
       orderCode,
       transactionId,
+      eventId,
+      rawPayload: queryParams,
     });
   }
   log.info("viva.fail_redirect", {
     orderId,
     orderCode,
     transactionId,
+    eventId,
     queryParams,
   });
 
-  const target = `${env.SHOP_DOMAIN}/payment/failed?order=${encodeURIComponent(
-    orderId
-  )}`;
+  const target = new URL("/payment/failed", env.SHOP_DOMAIN);
+  target.searchParams.set("order", orderId);
+  if (eventId) target.searchParams.set("event", eventId);
+  if (orderCode) target.searchParams.set("providerRef", orderCode);
   return NextResponse.redirect(target, 302);
 }

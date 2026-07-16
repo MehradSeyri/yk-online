@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const orderCode = url.searchParams.get("s") || null;
   const transactionId = url.searchParams.get("t") || null;
+  const eventId = url.searchParams.get("eventId") || null;
   const queryParams = queryParamsForLog(url);
 
   log.info("viva.success_redirect.received", {
@@ -50,6 +51,7 @@ export async function GET(req: NextRequest) {
       orderId,
       orderCode,
       transactionId,
+      eventId,
       queryParams,
       providerStatus: result.status,
     });
@@ -62,9 +64,17 @@ export async function GET(req: NextRequest) {
       status: "success",
       orderCode,
       transactionId,
+      eventId,
+      rawPayload: queryParams,
     });
   }
-  log.info("viva.success_redirect", { orderId, orderCode, transactionId, queryParams });
+  log.info("viva.success_redirect", {
+    orderId,
+    orderCode,
+    transactionId,
+    eventId,
+    queryParams,
+  });
 
   const target = `${env.SHOP_DOMAIN}/payment/success?order=${encodeURIComponent(
     orderId
