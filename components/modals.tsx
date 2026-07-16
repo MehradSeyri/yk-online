@@ -201,6 +201,45 @@ function parsePrice(text: string): { amount: number; currency: "CZK" | "EUR" } {
   return { amount, currency };
 }
 
+type CheckoutCurrency = "CZK" | "EUR" | "PLN" | "RON";
+
+const CURRENCY_RATES: Record<CheckoutCurrency, number> = {
+  EUR: 1,
+  CZK: 25,
+  PLN: 4.3,
+  RON: 5,
+};
+
+const CURRENCY_LABELS: Record<CheckoutCurrency, string> = {
+  CZK: "Kc",
+  EUR: "EUR",
+  PLN: "PLN",
+  RON: "RON",
+};
+
+const ADD_ONS = [
+  { id: "priority", priceEur: 1, cs: "Prioritni doruceni", en: "Priority delivery" },
+  { id: "invoice-check", priceEur: 3, cs: "Kontrola fakturacnich udaju", en: "Invoice details review" },
+  { id: "checklist", priceEur: 5, cs: "Implementacni checklist", en: "Implementation checklist" },
+  { id: "team-notes", priceEur: 7, cs: "Poznamky pro tymove nasazeni", en: "Team onboarding notes" },
+  { id: "setup-call", priceEur: 10, cs: "30min konzultace k nastaveni", en: "30-minute setup call" },
+] as const;
+
+function convertAmount(
+  amount: number,
+  from: "CZK" | "EUR",
+  to: CheckoutCurrency
+): number {
+  const eur = from === "EUR" ? amount : amount / CURRENCY_RATES.CZK;
+  const converted = eur * CURRENCY_RATES[to];
+  return Math.round(converted * 100) / 100;
+}
+
+function formatMoney(amount: number, currency: CheckoutCurrency): string {
+  if (currency === "CZK") return `${Math.round(amount).toLocaleString("cs-CZ")} Kc`;
+  return `${amount.toFixed(2)} ${currency}`;
+}
+
 const BANK_ACCOUNTS = {
   CZK: "CZ6303000000000366778458",
   EUR: "CZ9203000000000371157680",
@@ -251,6 +290,10 @@ function InquiryModal() {
   const [couponApplied, setCouponApplied] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponStatus, setCouponStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [selectedCurrency, setSelectedCurrency] = useState<CheckoutCurrency>(
+    lang === "cs" ? "CZK" : "EUR"
+  );
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
 
   // Reset transient UI each time a new checkout opens.
   useEffect(() => {
@@ -272,30 +315,40 @@ function InquiryModal() {
     setCouponApplied("");
     setCouponDiscount(0);
     setCouponStatus("idle");
-  }, [inquiry, userName, userEmail]);
+    setSelectedCurrency(lang === "cs" ? "CZK" : "EUR");
+    setSelectedAddOns([]);
+  }, [inquiry, userName, userEmail, lang]);
 
   const productName = inquiry?.name ?? "";
   const priceText = inquiry?.price ?? "";
   const parsed = parsePrice(priceText);
   const hasFixedPrice = parsed.amount > 0;
-  const iban = parsed.currency === "EUR" ? BANK_ACCOUNTS.EUR : BANK_ACCOUNTS.CZK;
-
-  // Final amount after coupon (authoritative value for payment and QR).
-  const finalAmount =
+  const canUseBankTransfer = selectedCurrency === "CZK" || selectedCurrency === "EUR";
+  const checkoutIban =
+    selectedCurrency === "EUR" ? BANK_ACCOUNTS.EUR : BANK_ACCOUNTS.CZK;
+  const selectedAddOnItems = ADD_ONS.filter((a) => selectedAddOns.includes(a.id));
+  const checkoutBaseAmount = convertAmount(parsed.amount, parsed.currency, selectedCurrency);
+  const checkoutAddOnsAmount = selectedAddOnItems.reduce(
+    (sum, item) => sum + convertAmount(item.priceEur, "EUR", selectedCurrency),
+    0
+  );
+  const checkoutSubtotalAmount =
+    Math.round((checkoutBaseAmount + checkoutAddOnsAmount) * 100) / 100;
+  const checkoutFinalAmount =
     couponDiscount > 0
-      ? Math.round(parsed.amount * (100 - couponDiscount) / 100 * 100) / 100
-      : parsed.amount;
-
-  const finalPriceDisplay =
-    couponDiscount > 0
-      ? parsed.currency === "EUR"
-        ? `€${finalAmount.toFixed(2)}`
-        : `${finalAmount % 1 === 0 ? finalAmount.toLocaleString("cs-CZ") : finalAmount.toFixed(2).replace(".", ",")} Kč`
-      : priceText;
+      ? Math.round(checkoutSubtotalAmount * (100 - couponDiscount) / 100 * 100) / 100
+      : checkoutSubtotalAmount;
+  const checkoutFinalPriceDisplay = formatMoney(checkoutFinalAmount, selectedCurrency);
+  const checkoutProductName =
+    selectedAddOnItems.length > 0
+      ? `${productName} + ${selectedAddOnItems
+          .map((item) => (lang === "cs" ? item.cs : item.en))
+          .join(", ")}`
+      : productName;
 
   const qrUrl =
     hasFixedPrice
-      ? createTransferQrUrl(iban, finalAmount, parsed.currency, `YK-Online ${productName}`)
+      ? createTransferQrUrl(checkoutIban, checkoutFinalAmount, selectedCurrency, `YK-Online ${checkoutProductName}`)
       : "";
 
   const handleApplyCoupon = async () => {
@@ -349,6 +402,12 @@ function InquiryModal() {
           ? "Vyberte platebni metodu."
           : "Please choose a payment method.";
     }
+    if (current === 3 && method === "bank" && !canUseBankTransfer) {
+      next.payment =
+        lang === "cs"
+          ? "QR prevod je dostupny jen pro CZK a EUR. Pro tuto menu zvolte kartu."
+          : "QR bank transfer is available only for CZK and EUR. Choose card for this currency.";
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -380,8 +439,8 @@ function InquiryModal() {
 
     if (method === "bank") {
       addOrder({
-        product: productName,
-        price: priceText,
+        product: checkoutProductName,
+        price: checkoutFinalPriceDisplay,
         paymentMethod: "bank",
         date: new Date().toLocaleDateString(lang === "cs" ? "cs-CZ" : "en-GB"),
         status: lang === "cs" ? "Čeká na úhradu (QR)" : "Awaiting payment (QR)",
@@ -398,9 +457,9 @@ function InquiryModal() {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          productName,
-          amount: finalAmount,
-          currency: parsed.currency,
+          productName: checkoutProductName,
+          amount: checkoutFinalAmount,
+          currency: selectedCurrency,
           lang,
           couponCode: couponApplied || undefined,
           customerName: name.trim(),
@@ -429,8 +488,8 @@ function InquiryModal() {
 
       addOrder({
         orderId: data.orderId,
-        product: productName,
-        price: priceText,
+        product: checkoutProductName,
+        price: checkoutFinalPriceDisplay,
         paymentMethod: "card",
         date: new Date().toLocaleDateString(lang === "cs" ? "cs-CZ" : "en-GB"),
         status: lang === "cs" ? "Objednávka vytvořena" : "Order created",
@@ -465,7 +524,7 @@ function InquiryModal() {
             {lang === "cs" ? "Digitální produkt • doručení ihned po zaplacení" : "Digital product • delivered instantly after payment"}
           </span>
         </div>
-        <span className="inquiry__product-price">{finalPriceDisplay || (lang === "cs" ? "Na dotaz" : "On request")}</span>
+        <span className="inquiry__product-price">{checkoutFinalPriceDisplay || (lang === "cs" ? "Na dotaz" : "On request")}</span>
       </div>
 
       {!hasFixedPrice ? (
@@ -493,19 +552,19 @@ function InquiryModal() {
           <div className="checkout-summary" style={{ width: "100%" }}>
             <div className="checkout-summary__row">
               <span>{lang === "cs" ? "Produkt" : "Product"}</span>
-              <strong>{productName}</strong>
+              <strong>{checkoutProductName}</strong>
             </div>
             <div className="checkout-summary__row">
               <span>{lang === "cs" ? "Částka" : "Amount"}</span>
-              <strong>{finalPriceDisplay}</strong>
+              <strong>{checkoutFinalPriceDisplay}</strong>
             </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qrUrl} alt="Bank transfer QR" style={{ width: 220, height: 220, borderRadius: 12, border: "1px solid #d7e0ea", padding: 6, background: "#fff" }} />
           <p className="inquiry__note">
             {lang === "cs"
-              ? `Účet ${parsed.currency}: ${iban}`
-              : `${parsed.currency} account: ${iban}`}
+              ? `Ucet ${selectedCurrency}: ${checkoutIban}`
+              : `${selectedCurrency} account: ${checkoutIban}`}
           </p>
           <button type="button" className="btn btn--outline btn--full" onClick={closeModals}>
             <T cs="Zavřít" en="Close" />
@@ -604,15 +663,19 @@ function InquiryModal() {
                 </div>
                 <div className="checkout-summary__row">
                   <span>{lang === "cs" ? (couponDiscount > 0 ? "Původní cena" : "Cena") : (couponDiscount > 0 ? "Original price" : "Price")}</span>
-                  <strong>{priceText}</strong>
+                  <strong>{formatMoney(checkoutBaseAmount, selectedCurrency)}</strong>
                 </div>
+                {selectedAddOnItems.length > 0 && (
+                  <div className="checkout-summary__row">
+                    <span>{lang === "cs" ? "Priplatky" : "Add-ons"}</span>
+                    <strong>{formatMoney(checkoutAddOnsAmount, selectedCurrency)}</strong>
+                  </div>
+                )}
                 {couponDiscount > 0 && (
                   <div className="checkout-summary__row checkout-summary__discount">
                     <span>{lang === "cs" ? `Sleva (${couponDiscount} %)` : `Discount (${couponDiscount}%)`}</span>
                     <strong>
-                      {parsed.currency === "EUR"
-                        ? `-€${(parsed.amount - finalAmount).toFixed(2)}`
-                        : `-${Math.round(parsed.amount - finalAmount).toLocaleString("cs-CZ")} Kč`}
+                      -{formatMoney(checkoutSubtotalAmount - checkoutFinalAmount, selectedCurrency)}
                     </strong>
                   </div>
                 )}
@@ -622,7 +685,62 @@ function InquiryModal() {
                 </div>
                 <div className="checkout-summary__row checkout-summary__total">
                   <span>{lang === "cs" ? "Celkem" : "Total"}</span>
-                  <strong>{finalPriceDisplay}</strong>
+                  <strong>{checkoutFinalPriceDisplay}</strong>
+                </div>
+              </div>
+
+              <div className="checkout-panel" style={{ padding: 0, border: 0, marginTop: 16 }}>
+                <div className="form-group">
+                  <label htmlFor="checkoutCurrency">
+                    {lang === "cs" ? "Mena platby" : "Payment currency"}
+                  </label>
+                  <select
+                    id="checkoutCurrency"
+                    className="checkout-select"
+                    value={selectedCurrency}
+                    onChange={(e) => {
+                      const next = e.target.value as CheckoutCurrency;
+                      setSelectedCurrency(next);
+                      if (next !== "CZK" && next !== "EUR" && method === "bank") {
+                        setMethod("card");
+                      }
+                    }}
+                  >
+                    <option value="CZK">CZK</option>
+                    <option value="EUR">EUR</option>
+                    <option value="PLN">PLN</option>
+                    <option value="RON">RON</option>
+                  </select>
+                </div>
+                <div className="checkout-payment">
+                  <p className="checkout-payment__title">
+                    {lang === "cs" ? "Priplatkove sluzby" : "Add-on services"}
+                  </p>
+                  {ADD_ONS.map((item) => {
+                    const checked = selectedAddOns.includes(item.id);
+                    const price = formatMoney(
+                      convertAmount(item.priceEur, "EUR", selectedCurrency),
+                      selectedCurrency
+                    );
+                    return (
+                      <label className="checkout-method-option" key={item.id}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            setSelectedAddOns((prev) =>
+                              e.target.checked
+                                ? [...prev, item.id]
+                                : prev.filter((id) => id !== item.id)
+                            );
+                          }}
+                        />
+                        <span>
+                          {lang === "cs" ? item.cs : item.en} (+{price})
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -684,6 +802,7 @@ function InquiryModal() {
                   <input
                     type="radio"
                     name="paymentMethod"
+                    disabled={!canUseBankTransfer}
                     checked={method === "bank"}
                     onChange={() => setMethod("bank")}
                   />
